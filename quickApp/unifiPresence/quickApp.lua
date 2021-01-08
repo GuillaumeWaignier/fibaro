@@ -9,18 +9,23 @@ end
 
 function QuickApp:loginUnifi()
     if self.cookie == nil then
-        self.http:request(self.controller .. "api/login", {
+        self.http:request(self.controller .. "api/auth/login", {
             options = {
                 checkCertificate = false,
                 method = 'POST',
+                headers = {
+                    ['Content-Type'] = "application/json; charset=utf-8"
+                },
                 data = json.encode({
                     ['username'] = self.login,
-                    ['password'] = self.password
+                    ['password'] = self.password,
+                    ['rememberMe'] = false
                 })
             },
             success = function(response)
                 if response.status == 200 then
                     self.cookie = response.headers['Set-Cookie']
+                    self.cookie = string.gsub(self.cookie, ";.*", "")
                     self:debug("loginUnifi() succeed")
                 else
                     self:error("loginUnifi() failed: ", json.encode(response.data))
@@ -37,7 +42,7 @@ function QuickApp:checkMacUnifi()
     local macInfo, lastSeen
 
     if self.cookie ~= nil then
-        self.http:request(self.controller .. "api/s/" .. self.site .. "/stat/user/" .. self.mac, {
+        self.http:request(self.controller .. "proxy/network/api/s/" .. self.site .. "/stat/user/" .. self.mac, {
             options = {
                 checkCertificate = false,
                 method = 'GET',
