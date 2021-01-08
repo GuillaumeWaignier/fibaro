@@ -27,12 +27,12 @@ function QuickApp:checkMacUnifi()
     local body, cameras, lastMotion
 
     if self.token ~= nil then
-        self.http:request(self.controller .. "api/bootstrap", {
+        self.http:request(self.controller .. "proxy/protect/api/bootstrap", {
             options = {
                 checkCertificate = false,
                 method = 'GET',
                 headers = {
-                    ['Authorization'] = self.token
+                    ['Cookie'] = self.token
                 }
             },
             success = function(response)
@@ -67,7 +67,7 @@ end
 
 function QuickApp:loginUnifi()
     if self.token == nil then
-        self.http:request(self.controller .. "api/auth", {
+        self.http:request(self.controller .. "api/auth/login", {
             options = {
                 checkCertificate = false,
                 method = 'POST',
@@ -81,8 +81,9 @@ function QuickApp:loginUnifi()
             },
             success = function(response)
                 if response.status == 200 then
-                    self.token = "Bearer " .. response.headers['Authorization']
-                    self:debug("loginUnifi() succeed")
+                    self.token = response.headers['Set-Cookie']
+                    self.token = string.gsub(self.token, ";.*", "")
+                    self:debug("loginUnifi() succeed ")
                 else
                     self:error("loginUnifi() failed: ", json.encode(response.data))
                 end
