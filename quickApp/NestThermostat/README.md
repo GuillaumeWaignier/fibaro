@@ -20,6 +20,7 @@ Link your account in [https://developers.google.com/nest/device-access/authorize
 | clientSecret  | OAuth2 Client ID created in [https://console.developers.google.com/apis/credentials](https://console.developers.google.com/apis/credentials)  | |
 | code  | Authentication code created with [https://developers.google.com/nest/device-access/authorize](https://developers.google.com/nest/device-access/authorize)   |  |
 | frequency  | delay in second to refresh the value  | 60 |
+| refreshToken  | OAuth2 refresh token  | Automatically retrieve. Set it to ‘-’ for the fisrt time |
 
 
 Note:
