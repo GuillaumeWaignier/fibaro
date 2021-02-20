@@ -29,7 +29,7 @@ function QuickApp:setThermostatMode(mode)
             if response.status == 200 then
                 self:debug("setThermostatMode() succeed", json.encode(response.data))
             else
-                self:error("setThermostatMode() failed: ", json.encode(response.data))
+                self:error("setThermostatMode() status is " .. response.status .. ": ", json.encode(response.data))
             end
         end,
         error = function(error)
@@ -59,7 +59,7 @@ function QuickApp:setHeatingThermostatSetpoint(value)
             if response.status == 200 then
                 self:debug("setHeatingThermostatSetpoint() succeed", json.encode(response.data))
             else
-                self:error("setHeatingThermostatSetpoint() failed: ", json.encode(response.data))
+                self:error("setHeatingThermostatSetpoint() status is " .. response.status .. ": ", json.encode(response.data))
             end
         end,
         error = function(error)
@@ -87,9 +87,10 @@ function QuickApp:sendMailForRefreshToken()
         return
     end
 
-    self:error("Need to refresh Nest Authorization Code")
+    local url = "https://nestservices.google.com/partnerconnections/" .. self.projectId .. "/auth?redirect_uri=https://www.google.com&access_type=offline&prompt=consent&client_id=" .. self.clientId .. "&response_type=code&scope=https://www.googleapis.com/auth/sdm.service"
 
-    fibaro:call (2, "sendEmail", "Fibaro request link to google Nest", "https://nestservices.google.com/partnerconnections/" .. self.projectId .. "/auth?redirect_uri=https://www.google.com&access_type=offline&prompt=consent&client_id=" .. self.clientId .. "&response_type=code&scope=https://www.googleapis.com/auth/sdm.service")
+    self:error("Need to refresh Nest Authorization Code", url)
+    
 end
 
 
@@ -115,7 +116,7 @@ function QuickApp:getRefreshToken()
                 self:debug("getRefreshToken() succeed")
                 self:trace(self.accessToken .. "   " ..  self.refreshToken)
             else
-                self:error("getRefreshToken() failed: ", response.status, response.data)
+                self:error("getRefreshToken() status is " .. response.status .. ": ", response.data)
                 self.authorizationCode=nil
             end
         end,
@@ -142,10 +143,9 @@ function QuickApp:getAccessToken()
             if response.status == 200 then
                 body = json.decode(response.data)
                 self.accessToken = "Bearer " .. body['access_token']
-                self:debug("getAccessToken() succeed")
-                --self:trace(self.accessToken)
+                --self:debug("getAccessToken() succeed " .. self.accessToken)
             else
-                self:error("getAccessToken() failed: ", json.encode(response.data))
+                self:error("getAccessToken() status is " .. response.status .. ": ", response.data)
                 self:setVariable("refreshToken", "")
             end
         end,
@@ -207,14 +207,14 @@ function QuickApp:updateThermostatInfo()
                 body = json.decode(response.data)
                 --self:debug("updateThermostatInfo() succeed", json.encode(response.data))
                 self:findThermostat(body)
-            else
-                self:error("updateThermostatInfo() failed: ", json.encode(response.data))
+            elseif response.status == 401 then
                 self.accessToken=nil
+            else
+                self:error("updateThermostatInfo() status is " .. response.status .. ": ", response.data)
             end
         end,
         error = function(error)
             self:error("updateThermostatInfo() failed: ", json.encode(error))
-            self.accessToken=nil
         end
     })
 end
@@ -269,7 +269,7 @@ function QuickApp:onInit()
     self:updateProperty("thermostatMode", "Off")
     self:updateProperty("heatingThermostatSetpoint", 10)
 
-    self.http = net.HTTPClient({ timeout = 3000 })
+    self.http = net.HTTPClient({ timeout = 10000 })
 
     self:mainLoop()
 
