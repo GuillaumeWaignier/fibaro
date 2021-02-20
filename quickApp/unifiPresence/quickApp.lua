@@ -19,7 +19,7 @@ function QuickApp:loginUnifi()
                 data = json.encode({
                     ['username'] = self.login,
                     ['password'] = self.password,
-                    ['rememberMe'] = false
+                    ['rememberMe'] = true
                 })
             },
             success = function(response)
