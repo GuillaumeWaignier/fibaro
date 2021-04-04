@@ -28,3 +28,7 @@ Link your account in [https://developers.google.com/nest/device-access/authorize
 * Nest Thermostat
 
 Mode Eco is not supported
+
+## Installation
+
+Concatenate each lua files.
