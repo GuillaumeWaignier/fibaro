@@ -1,3 +1,6 @@
+
+> Deprecated: use the [Nest QuickApp](https://github.com/GuillaumeWaignier/fibaro/tree/master/quickApp/Nest) that handles multiple Nest devices by using quickapp child.
+
 # QuickApp for Nest thermostat
 
 Device type: *hvacSystemHeat*
