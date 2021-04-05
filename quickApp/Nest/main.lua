@@ -96,10 +96,11 @@ function QuickApp:sendMailForRefreshToken()
         return
     end
         
-    local message = string.format("Need to refresh Nest Authorization code: https://nestservices.google.com/partnerconnections/%s/auth?redirect_uri=https://www.google.com&access_type=offline&prompt=consent&client_id=%s&response_type=code&scope=https://www.googleapis.com/auth/sdm.service",self.projectId, self.clientId)
+    local message = string.format("<html><body>Need to refresh <a href=\"https://nestservices.google.com/partnerconnections/%s/auth?redirect_uri=https://www.google.com%%26access_type=offline%%26prompt=consent%%26client_id=%s%%26response_type=code%%26scope=https://www.googleapis.com/auth/sdm.service\" target=\"_blank\">Nest Authorization code</a></body></html>",self.projectId, self.clientId)
 
-    self:error(message)
+    self:error(message:gsub("%%26","&"))
     fibaro.alert("email", {2}, message)
+    
     self.step = "nothing"
 end
 
