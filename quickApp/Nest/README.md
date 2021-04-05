@@ -27,7 +27,9 @@ Link your account in [https://developers.google.com/nest/device-access/authorize
 
 * Nest Thermostat
 
-Mode Eco is not supported
+Supported mode: Off, Heat, Manual Eco
+
+Possibility to change the heating point
 
 ## Installation
 
