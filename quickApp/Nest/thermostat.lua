@@ -30,12 +30,12 @@ function NestThermostat:updateMode(body)
     thermostatMode = body['traits']['sdm.devices.traits.ThermostatMode']['mode']
     thermostatModeEco = body['traits']['sdm.devices.traits.ThermostatEco']['mode']
 
-    if thermostatModeEco == 'MANUAL_ECO' then
-      self:updateProperty("thermostatMode", "Eco")
+    if thermostatMode == "OFF" then
+        self:updateProperty("thermostatMode", "Off")
+    elseif thermostatModeEco == 'MANUAL_ECO' then
+        self:updateProperty("thermostatMode", "Eco")
     elseif thermostatMode == "HEAT" then
-      self:updateProperty("thermostatMode", "Heat")
-    elseif thermostatMode == "OFF" then
-      self:updateProperty("thermostatMode", "Off")
+        self:updateProperty("thermostatMode", "Heat")
     else
       self:error("updateMode() failed", "Unknown mode " .. thermostatMode .. " / " .. thermostatModeEco)
     end
@@ -45,42 +45,65 @@ end
 function NestThermostat:setThermostatMode(mode)
     self:debug("update mode " .. mode)
     
-
     local modeNest = string.upper(mode)
     if modeNest == 'ECO' then
-      --TODO
-    else
-      self.parent.http:request("https://smartdevicemanagement.googleapis.com/v1/" .. self:getVariable("uid") .. ":executeCommand" , {
-        options = {
-            checkCertificate = true,
-            method = 'POST',
-            headers = {
-                 ['Content-Type'] = "application/json; charset=utf-8",
-                 ['Authorization'] = self.parent.accessToken
-            },
-            data = json.encode({
-                    ['command'] = "sdm.devices.commands.ThermostatMode.SetMode",
-                    ['params'] = {['mode'] = modeNest}
-                })
-        },
-        success = function(response)
-            if response.status == 200 then
-                self:debug("setThermostatMode() succeed", json.encode(response.data))
-                self:updateProperty("thermostatMode", mode)
-            else
-                self:error("setThermostatMode() status is " .. response.status .. ": ", json.encode(response.data))
+        self:callNestApi("sdm.devices.commands.ThermostatMode.SetMode",
+            "mode",
+            "HEAT",
+            function()
+                self:callNestApi("sdm.devices.commands.ThermostatEco.SetMode",
+                    "mode",
+                    "MANUAL_ECO",
+                    function()
+                        self:updateProperty("thermostatMode", mode)
+                    end
+                )
             end
-        end,
-        error = function(error)
-            self:error("setThermostatMode() failed: ", json.encode(error))
-        end
-    })
+        )
+    elseif mode == 'Off' then
+        self:callNestApi("sdm.devices.commands.ThermostatMode.SetMode",
+            "mode",
+            "OFF",
+            function()
+                 self:updateProperty("thermostatMode", mode)
+            end
+        )
+    elseif mode == 'Heat' then
+        self:callNestApi("sdm.devices.commands.ThermostatMode.SetMode",
+            "mode",
+            "HEAT",
+            function()
+                self:callNestApi("sdm.devices.commands.ThermostatEco.SetMode",
+                    "mode",
+                    "OFF",
+                    function()
+                        self:updateProperty("thermostatMode", mode)
+                    end
+                )
+            end
+        )
+    else
+        self:error("Unknow mode " .. mode)
     end
 end
 
 -- handle action for setting set point for heating
-function NestThermostat:setHeatingThermostatSetpoint(value) 
-    self.parent.http:request("https://smartdevicemanagement.googleapis.com/v1/" .. self:getVariable("uid") .. ":executeCommand" , {
+function NestThermostat:setHeatingThermostatSetpoint(value)
+    self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetHeat",
+        "heatCelsius",
+        value,
+        function()
+            self:updateProperty("heatingThermostatSetpoint", value)
+        end
+    )
+end
+
+-- Call Nest API
+function NestThermostat:callNestApi(command, key, value, callback)
+    local message = string.format("%s (%s:%s)", command, key, value)
+    local url = string.format("https://smartdevicemanagement.googleapis.com/v1/%s:executeCommand", self:getVariable("uid"))
+
+    self.parent.http:request(url, {
         options = {
             checkCertificate = true,
             method = 'POST',
@@ -89,20 +112,20 @@ function NestThermostat:setHeatingThermostatSetpoint(value)
                  ['Authorization'] = self.parent.accessToken
             },
             data = json.encode({
-                    ['command'] = "sdm.devices.commands.ThermostatTemperatureSetpoint.SetHeat",
-                    ['params'] = {['heatCelsius'] = value}
+                    ['command'] = command,
+                    ['params'] = {[key] = value}
                 })
         },
         success = function(response)
             if response.status == 200 then
-                self:debug("setHeatingThermostatSetpoint() succeed", json.encode(response.data))
-                self:updateProperty("heatingThermostatSetpoint", value)
+                self:debug("callNestApi() success " .. message)
+                callback()
             else
-                self:error("setHeatingThermostatSetpoint() status is " .. response.status .. ": ", json.encode(response.data))
+                self:error("callNestApi() " .. message .. " status is " .. response.status .. ": ", json.encode(response.data))
             end
         end,
         error = function(error)
-            self:error("setHeatingThermostatSetpoint() failed: ", json.encode(error))
+            self:error("callNestApi() " .. message .." failed: ", json.encode(error))
         end
     })
 end
