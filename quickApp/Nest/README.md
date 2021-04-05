@@ -27,9 +27,12 @@ Link your account in [https://developers.google.com/nest/device-access/authorize
 
 * Nest Thermostat
 
-Supported mode: Off, Heat, Manual Eco
+*Account permissions requirement*: access and control your thermostat
 
-Possibility to change the heating point
+*Features*: change the heating point, change mode, get state
+
+*Supported mode*: Off, Heat, Manual Eco
+
 
 ## Installation
 
