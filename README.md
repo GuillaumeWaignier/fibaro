@@ -1,2 +1,2 @@
 # fibaro
-Some fibrao quickApp
+Some fibaro quickApp
