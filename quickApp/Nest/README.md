@@ -29,10 +29,11 @@ Link your account in [https://developers.google.com/nest/device-access/authorize
 
 *Account permissions requirement*: access and control your thermostat
 
-*Features*: change the heating point, change mode, get state
+*Features*: change the heating point, change mode, get state, get ambiant temperature and humidity
 
 *Supported mode*: Off, Heat, Manual Eco
 
+![Screenshot](Nest_quickapp.png)
 
 ## Installation
 
