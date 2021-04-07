@@ -37,4 +37,4 @@ Link your account in [https://developers.google.com/nest/device-access/authorize
 
 ## Installation
 
-Concatenate each lua files.
+Concatenate each lua files or import Nest.fqa file.
