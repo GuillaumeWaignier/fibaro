@@ -16,6 +16,8 @@ function QuickApp:onInit()
     -- If type is not defined, QuickAppChild will be used.
     self:initChildDevices({
         ["com.fibaro.hvacSystemHeat"] = NestThermostat,
+        ["com.fibaro.temperatureSensor"] = NestThermostatTemperature,
+        ["com.fibaro.humiditySensor"] = NestThermostatHumidity,
     })
 
     -- Build device map
@@ -196,7 +198,6 @@ function QuickApp:listNestDevice()
         success = function(response)
             if response.status == 200 then
                 body = json.decode(response.data)
-                --self:debug("listNestDevice() succeed", json.encode(response.data))
                 self:updateNestDevices(body)
             elseif response.status == 401 then
                 self.step = "accessToken"
@@ -212,41 +213,57 @@ end
 
 function QuickApp:updateNestDevices(body)
   devices = body['devices']
+  --self:debug("updateNestDevices()", json.encode(devices))
 
   for i, device in ipairs(devices)
   do
+    local name = device['name']
     if device['type'] == 'sdm.devices.types.THERMOSTAT'
     then
-        local name = device['name']
-        local id = self.devicesMap[name]
-        local fibaroDevice = nil
-        if id 
-        then
-            fibaroDevice = self.childDevices[id]
-        else
-            fibaroDevice = self:createChild(device)
-        end
-
+        local fibaroDevice = self:getOrCreateChildDevice(name, device, "com.fibaro.hvacSystemHeat")
+        fibaroDevice:updateDevice(device)
+    end
+    if device['traits']['sdm.devices.traits.Temperature'] ~= nil
+    then
+         local fibaroDevice = self:getOrCreateChildDevice(name .. "Temperature", device, "com.fibaro.temperatureSensor")
+        fibaroDevice:updateDevice(device)
+    end
+    if device['traits']['sdm.devices.traits.Humidity'] ~= nil
+    then
+         local fibaroDevice = self:getOrCreateChildDevice(name .. "Humidity", device, "com.fibaro.humiditySensor")
         fibaroDevice:updateDevice(device)
     end
   end
 end
  
+-- Get or create child device
+function QuickApp:getOrCreateChildDevice(name, device, type)
+  local id = self.devicesMap[name]
+  if id 
+  then
+    return self.childDevices[id]
+  else
+    return self:createChild(name, device, type)
+  end
+end
 
 
 -- Create fibaro child device
-function QuickApp:createChild(device)
-    local name = device['name']
-    local type = device['type']
+function QuickApp:createChild(name, device, type)
     local child = nil
 
-    if type  == 'sdm.devices.types.THERMOSTAT'
+    if type  == 'com.fibaro.hvacSystemHeat'
     then
         child = self:createChildDevice({name = name,type = "com.fibaro.hvacSystemHeat"}, NestThermostat)
+    elseif type == "com.fibaro.temperatureSensor"
+    then
+        child = self:createChildDevice({name = name,type = "com.fibaro.temperatureSensor"}, NestThermostatTemperature)
+    elseif type == "com.fibaro.humiditySensor"
+    then
+        child = self:createChildDevice({name = name,type = "com.fibaro.humiditySensor"}, NestThermostatHumidity)
     end
 
     child:setVariable("uid", name)
-
     self.devicesMap[name] = child.id
 
     local message = string.format("Child device created: %s of type %s", child.id, child.type)
