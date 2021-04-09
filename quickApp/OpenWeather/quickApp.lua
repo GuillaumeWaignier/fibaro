@@ -123,6 +123,15 @@ function QuickApp:completeChild()
         child:setVariable("uid", name)
         child:updateProperty("unit", "hPa")
     end
+
+     local name = "uvi"
+    if self.devicesMap[name] == nil
+    then
+        child = self:createChildDevice({name = name,type = "com.fibaro.multilevelSensor"}, OpenWeatherMapPressure)
+        self.devicesMap[name] = child
+        child:setVariable("uid", name)
+        child:updateProperty("unit", "uv")
+    end
 end
 
 -- main loop
@@ -136,7 +145,7 @@ end
 
 
 function QuickApp:fetchWeatherData()
-    local address = string.format("https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&units=%s&appid=%s", self.lat, self.long, self.unit, self.key)
+    local address = string.format("https://api.openweathermap.org/data/2.5/onecall?lat=%s&lon=%s&exclude=minutely,hourly,daily&units=%s&appid=%s", self.lat, self.long, self.unit, self.key)
 
     self.http:request(address, {
         options={
@@ -158,33 +167,42 @@ end
 
 -- parse response
 function QuickApp:onWatherDataReceived(data)
-    if data.main and data.main.temp
+    if data.current == nil
     then
-        --self:debug(self.devicesMap["weather"].type)
-        self.devicesMap["weather"]:updateProperty("Temperature", data.main.temp)
-        self.devicesMap["temperature"]:updateProperty("value", data.main.temp)
+        return
     end
 
-    if data.main and data.main.humidity
+    if data.current.temp
+    then
+        self.devicesMap["weather"]:updateProperty("Temperature", data.current.temp)
+        self.devicesMap["temperature"]:updateProperty("value", data.current.temp)
+    end
+
+    if data.current.humidity
     then    
-        self.devicesMap["weather"]:updateProperty("Humidity", data.main.humidity)
-        self.devicesMap["humidity"]:updateProperty("value", data.main.humidity)
+        self.devicesMap["weather"]:updateProperty("Humidity", data.current.humidity)
+        self.devicesMap["humidity"]:updateProperty("value", data.current.humidity)
     end
 
-    if data.wind and data.wind.speed
+    if data.current.wind_speed
     then
-        self.devicesMap["weather"]:updateProperty("Wind", data.wind.speed * 3.6)
-        self.devicesMap["wind"]:updateProperty("value", data.wind.speed * 3.6)
+        self.devicesMap["weather"]:updateProperty("Wind", data.current.wind_speed * 3.6)
+        self.devicesMap["wind"]:updateProperty("value", data.current.wind_speed * 3.6)
     end
 
-    if data.main and data.main.pressure
+    if data.current.pressure
     then
-        self.devicesMap["pressure"]:updateProperty("value", data.main.pressure)
+        self.devicesMap["pressure"]:updateProperty("value", data.current.pressure)
     end
 
-    if data.weather and data.weather[1] and data.weather[1].main
+    if data.current.uvi
+    then
+        self.devicesMap["uvi"]:updateProperty("value", data.current.uvi)
+    end
+
+    if data.current.weather and data.current.weather[1] and data.current.weather[1].main
     then    
-        self:setCondition(data.weather[1].main)
+        self:setCondition(data.current.weather[1].main)
     end
 end
 
@@ -265,3 +283,13 @@ function OpenWeatherMapWind:__init(device)
     QuickAppChild.__init(self, device) 
     self:trace("OpenWeatherMapWind init")
 end
+
+-- Pressure sensor
+class 'OpenWeatherMapPressure' (QuickAppChild)
+
+function OpenWeatherMapPressure:__init(device)
+    QuickAppChild.__init(self, device) 
+    self:trace("OpenWeatherMapPressure init")
+end
+
+
