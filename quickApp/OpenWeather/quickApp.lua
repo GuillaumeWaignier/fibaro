@@ -1,6 +1,49 @@
--- Sample plugin for handling data from https://openweathermap.org/
--- How to generate appid: https://openweathermap.org/appid
--- To setup this plugin fill proper location id in locationId variable and  API key in APIKey variable
+-- Device Controller is a little more advanced than other types. 
+-- It can create child devices, so it can be used for handling multiple physical devices.
+-- E.g. when connecting to a hub, some cloud service or just when you want to represent a single physical device as multiple endpoints.
+-- 
+-- Basic knowledge of object-oriented programming (oop) is required. 
+-- Learn more about oop: https://en.wikipedia.org/wiki/Object-oriented_programming 
+-- Learn more about managing child devices: https://manuals.fibaro.com/home-center-3-quick-apps/
+
+function QuickApp:onInit()
+    self:debug("QuickApp:onInit")
+
+    self:initializeProperties()
+
+    self:initChildDevices({
+        ["com.fibaro.weather"] = OpenWeatherMap,
+        ["com.fibaro.temperatureSensor"] = OpenWeatherMapTemperature,
+        ["com.fibaro.humiditySensor"] = OpenWeatherMapHumidity,
+        ["com.fibaro.windSensor"] = OpenWeatherMapWind,
+        ["com.fibaro.multilevelSensor"] = OpenWeatherMapPressure,
+    })
+
+    self:retrieveChild()
+    self:completeChild()
+   
+    self:mainLoop()
+end
+
+function QuickApp:initializeProperties()
+
+    assert(self:getVariable("locationId") ~= "", "locationId is not set (see Fibaro API GET /panels/location/")
+    self:getHCLocation(self:getVariable("locationId"))
+
+    -- APIKey is required by openweathermap
+    self.key = self:getVariable("APIKey")
+    assert(self.key ~= "", "OpenWeather API key (APIKey) is not set")
+
+    self.unit = self:getVariable("unit")
+    assert(self.unit ~= "", "unit is not set")
+
+    self.frequency = tonumber(self:getVariable("frequency"))
+    assert(self.frequency ~= "", "frequency is not set")
+    self.frequency = tonumber(self.frequency)
+    assert(self.frequency ~= nil, "frequency is not a number")
+
+    self.http = net.HTTPClient({timeout=1000})
+end
 
 function QuickApp:getHCLocation(locationId)
     local location = api.get("/panels/location/" .. locationId)
@@ -8,7 +51,6 @@ function QuickApp:getHCLocation(locationId)
     if location
     then 
         self:debug("Configured location:", location.name)
-
         self.lat = location.latitude
         self.long = location.longitude
     else 
@@ -16,11 +58,140 @@ function QuickApp:getHCLocation(locationId)
     end
 end
 
+-- Retrieve existing childs
+function QuickApp:retrieveChild()
+    self.devicesMap = {}
+    self:trace("Child devices:")
+    for id,device in pairs(self.childDevices)
+    do
+        local uid = device:getVariable("uid")
+        if uid ~= ""
+        then
+            self.devicesMap[uid] = self.childDevices[id]
+            local message = string.format("[%d] %s of type %s with UID %s", id, device.name, device.type, uid)
+            self:trace(message)
+        else
+            local message = string.format("[%d] %s of type %s has no UID", id, device.name, device.type)
+            self:error(message)
+            api.delete('/devices/' .. id)
+        end
+    end
+end
+
+-- Create childs if needed
+function QuickApp:completeChild()
+    local child = nil
+    
+    local name = "weather"
+    if self.devicesMap[name] == nil
+    then
+        child = self:createChildDevice({name = name,type = "com.fibaro.weather"}, OpenWeatherMap)
+        self.devicesMap[name] = child
+        child:setVariable("uid", name)
+    end
+
+    local name = "temperature"
+    if self.devicesMap[name] == nil
+    then
+        child = self:createChildDevice({name = name,type = "com.fibaro.temperatureSensor"}, OpenWeatherMapTemperature)
+        self.devicesMap[name] = child
+        child:setVariable("uid", name)
+    end
+
+    local name = "humidity"
+    if self.devicesMap[name] == nil
+    then
+        child = self:createChildDevice({name = name,type = "com.fibaro.humiditySensor"}, OpenWeatherMapHumidity)
+        self.devicesMap[name] = child
+        child:setVariable("uid", name)
+    end 
+
+    local name = "wind"
+    if self.devicesMap[name] == nil
+    then
+        child = self:createChildDevice({name = name,type = "com.fibaro.windSensor"}, OpenWeatherMapWind)
+        self.devicesMap[name] = child
+        child:setVariable("uid", name)
+        child:updateProperty("unit", "km/h")
+    end
+
+    local name = "pressure"
+    if self.devicesMap[name] == nil
+    then
+        child = self:createChildDevice({name = name,type = "com.fibaro.multilevelSensor"}, OpenWeatherMapPressure)
+        self.devicesMap[name] = child
+        child:setVariable("uid", name)
+        child:updateProperty("unit", "hPa")
+    end
+end
+
+-- main loop
+function QuickApp:mainLoop()
+    self:fetchWeatherData()
+
+    fibaro.setTimeout(self.frequency * 1000, function()
+        self:mainLoop()
+    end)
+end
+
+
+function QuickApp:fetchWeatherData()
+    local address = string.format("https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&units=%s&appid=%s", self.lat, self.long, self.unit, self.key)
+
+    self.http:request(address, {
+        options={
+            method = 'GET'
+        },
+        success = function(response)
+            --print(response.data)
+            local data = json.decode(response.data)
+            if data
+            then
+                self:onWatherDataReceived(data)
+            end
+        end,
+        error = function(error)
+            self:error('error: ' .. json.encode(error))
+        end
+    })   
+end
+
+-- parse response
+function QuickApp:onWatherDataReceived(data)
+    if data.main and data.main.temp
+    then
+        --self:debug(self.devicesMap["weather"].type)
+        self.devicesMap["weather"]:updateProperty("Temperature", data.main.temp)
+        self.devicesMap["temperature"]:updateProperty("value", data.main.temp)
+    end
+
+    if data.main and data.main.humidity
+    then    
+        self.devicesMap["weather"]:updateProperty("Humidity", data.main.humidity)
+        self.devicesMap["humidity"]:updateProperty("value", data.main.humidity)
+    end
+
+    if data.wind and data.wind.speed
+    then
+        self.devicesMap["weather"]:updateProperty("Wind", data.wind.speed * 3.6)
+        self.devicesMap["wind"]:updateProperty("value", data.wind.speed * 3.6)
+    end
+
+    if data.main and data.main.pressure
+    then
+        self.devicesMap["pressure"]:updateProperty("value", data.main.pressure)
+    end
+
+    if data.weather and data.weather[1] and data.weather[1].main
+    then    
+        self:setCondition(data.weather[1].main)
+    end
+end
 
 -- posible conditions: "unknown", "clear", "rain", "snow", "storm", "cloudy", "fog"
 function QuickApp:setCondition(condition)
     --self:debug("condition", condition)
-    self:updateView("labelCondition", "text", condition)
+    -- self:updateView("labelCondition", "text", condition)
 
     -- map conditions from openweathermap into hc confitions 
     local conditionsMap = {
@@ -54,85 +225,43 @@ function QuickApp:setCondition(condition)
     
     if conditionCode
     then
-        self:updateProperty("ConditionCode", conditionCode)
-        self:updateProperty("WeatherCondition", condition)
+        self.devicesMap["weather"]:updateProperty("ConditionCode", conditionCode)
+        self.devicesMap["weather"]:updateProperty("WeatherCondition", condition)
     end
 end
 
-function QuickApp:fetchWeatherData()
-    local address = string.format("https://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&units=%s&appid=%s", self.lat, self.long, self.unit, self.key)
-    --self:debug("connecting:", address)
 
-    self.http:request(address, {
-        options={
-            method = 'GET'
-        },
-        success = function(response)
-            --print(response.data)
-            local data = json.decode(response.data)
-            if data
-            then
-                self:onWatherDataReceived(data)
-            end
-        end,
-        error = function(error)
-            self:error('error: ' .. json.encode(error))
-        end
-    })   
+-----------------------------------------------------------------------------
+--                  CHILDS                      -----------------------------
+-----------------------------------------------------------------------------
+-- Weather
+class 'OpenWeatherMap' (QuickAppChild)
+
+function OpenWeatherMap:__init(device)
+    QuickAppChild.__init(self, device) 
+    self:trace("OpenWeatherMap init")
 end
 
--- parse response
-function QuickApp:onWatherDataReceived(data)
-    if data.main and data.main.temp
-    then    
-        self:updateProperty("Temperature", data.main.temp)
-        self:updateView("labelTemperature", "text", tostring(data.main.temp) .. " C")
-    end
+-- Temperature sensor
+class 'OpenWeatherMapTemperature' (QuickAppChild)
 
-    if data.main and data.main.humidity
-    then    
-        self:updateProperty("Humidity", data.main.humidity)
-        self:updateView("labelHumidity", "text", tostring(data.main.humidity) .. " %")
-    end
-
-    if data.wind and data.wind.speed
-    then
-        self:updateProperty("Wind", data.wind.speed * 3.6)
-        self:updateView("labelWind", "text", tostring(data.wind.speed * 3.6) .. " km/h")
-    end
-
-    if data.weather and data.weather[1] and data.weather[1].main
-    then    
-        self:setCondition(data.weather[1].main)
-    end
+function OpenWeatherMapTemperature:__init(device)
+    QuickAppChild.__init(self, device) 
+    self:trace("OpenWeatherMapTemperature init")
 end
 
--- main loop
-function QuickApp:mainLoop()
-    self:fetchWeatherData()
-    
-    fibaro.setTimeout( self.delay * 1000, function() 
-        self:mainLoop()    
-    end)
+-- Humidity sensor
+class 'OpenWeatherMapHumidity' (QuickAppChild)
+
+function OpenWeatherMapHumidity:__init(device)
+    QuickAppChild.__init(self, device) 
+    self:trace("OpenWeatherMapHumidity init")
 end
 
-function QuickApp:onInit()
-    self:debug("onInit")
+-- Wind sensor
+class 'OpenWeatherMapWind' (QuickAppChild)
 
-    assert(self:getVariable("locationId") ~= "", "locationId is not set (see Fibaro API GET /panels/location/")
-    self:getHCLocation(self:getVariable("locationId"))
-
-
-    -- APIKey is required by openweathermap
-    self.key = self:getVariable("APIKey")
-    assert(self.key ~= "", "OpenWeather API key (APIKey) is not set")
-
-    self.unit = self:getVariable("unit")
-    assert(self.unit ~= "", "unit is not set")
-
-    self.delay = tonumber(self:getVariable("delay"))
-    assert(self.delay ~= "", "delay is not set")
-
-    self.http = net.HTTPClient({timeout=3000})
-    self:mainLoop()
+function OpenWeatherMapWind:__init(device)
+    QuickAppChild.__init(self, device) 
+    self:trace("OpenWeatherMapWind init")
 end
