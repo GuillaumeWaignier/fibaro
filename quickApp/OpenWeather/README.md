@@ -2,6 +2,8 @@
 
 Device type: *device controller*
 
+![Screenshot](screen-weather.png)
+
 ## Required
 
 Create an API key in [https://openweathermap.org/appid](https://openweathermap.org/appid)
