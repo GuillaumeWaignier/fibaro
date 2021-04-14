@@ -227,7 +227,7 @@ function QuickApp:updateNestDevices(body)
   for i, device in ipairs(devices)
   do
     local name = device['name']
-    if device['type'] == 'sdm.devices.types.THERMOSTAT'
+    if device['traits']['sdm.devices.traits.ThermostatTemperatureSetpoint'] ~= nil
     then
         local fibaroDevice = self:getOrCreateChildDevice(name, device, "com.fibaro.hvacSystemHeat")
         fibaroDevice:updateDevice(device)
