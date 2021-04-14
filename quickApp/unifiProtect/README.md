@@ -1,7 +1,6 @@
 # QuickApp for UnifiProtect
 
-Device type: *BinarySensor*
-
+Device type: *device controller*
 
 ## Required
 
@@ -18,6 +17,12 @@ Create a new readOnly user.
 | password  | user password  | |
 | frequency  | delay in second to refresh the value  | 60 |
 | away delay  | duration in second when the sensor is breached  | 120 |
-| mac  | mac address of the IP camera without ':'  |  |
 
 
+
+## Features
+
+Create a motion sensor for each Unifi Camera.
+The motion sensor is triggered depending of the las motion detection in Unifi Protect Controller.
+
+![Screenshot](protect_quickapp.png)
