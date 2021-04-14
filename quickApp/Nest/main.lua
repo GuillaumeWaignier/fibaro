@@ -98,11 +98,20 @@ function QuickApp:sendMailForRefreshToken()
         return
     end
         
-    local message = string.format("<html><body>Need to refresh <a href=\"https://nestservices.google.com/partnerconnections/%s/auth?redirect_uri=https://www.google.com%%26access_type=offline%%26prompt=consent%%26client_id=%s%%26response_type=code%%26scope=https://www.googleapis.com/auth/sdm.service\" target=\"_blank\">Nest Authorization code</a></body></html>",self.projectId, self.clientId)
+    local url = string.format("https://nestservices.google.com/partnerconnections/%s/auth?redirect_uri=https://www.google.com%%26access_type=offline%%26prompt=consent%%26client_id=%s%%26response_type=code%%26scope=https://www.googleapis.com/auth/sdm.service",self.projectId, self.clientId)
 
-    self:error(message:gsub("%%26","&"))
-    fibaro.alert("email", {2}, message)
-    
+    -- mail
+    local mail = string.format("Need to refresh Nest Authentication code for quickApp %d with %s", self.id, url)
+    fibaro.alert("email", {2}, mail)
+
+    -- log
+    local html = string.format("<html><body>Need to refresh Nest Authentication code for quickApp %d with <a href=\"%s\" target=\"_blank\">%s</a></body></html>", self.id, url:gsub("%%26","&"), url:gsub("%%26","&"))
+    self:error(html)
+
+    -- notification
+    local m ={canBeDeleted=true,wasRead=false,priority="alert",type="GenericDeviceNotification",data={deviceId=tonumber(self.id),subType="DeviceNotConfigured",title="Nest Authentication Code",text=html}}
+    api.post("/notificationCenter",m)
+
     self.step = "nothing"
 end
 
