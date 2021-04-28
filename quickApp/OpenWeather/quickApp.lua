@@ -202,52 +202,54 @@ function QuickApp:onWatherDataReceived(data)
 
     if data.current.weather and data.current.weather[1] and data.current.weather[1].main
     then    
-        self:setCondition(data.current.weather[1].main)
+        self:setCondition(data.current.weather[1])
     end
 end
 
--- posible conditions: "unknown", "clear", "rain", "snow", "storm", "cloudy", "fog"
+
 function QuickApp:setCondition(condition)
-    --self:debug("condition", condition)
-    -- self:updateView("labelCondition", "text", condition)
-
-    -- map conditions from openweathermap into hc confitions 
-    local conditionsMap = {
-        Clear = "clear",
-        Clouds = "cloudy",
-        Thunderstorm = "storm",
-        Snow = "snow",
-        Rain = "rain",
-        Drizzle = "rain",
-        Mist = "fog"
-    }
-    local hcCondition = conditionsMap[condition]
+    -- self:debug("condition", json.encode(condition))
     
-    -- falbback if condidiotn wasn't found 
-    if hcCondition == nil
-    then
-        hcCondition = "unknown"
-    end
+    local key = condition.id .. string.sub(condition.icon, 3)
+    local code = QuickApp.codes[key]
 
-    local conditionCodes = { 
-        unknown = 3200,
-        clear = 32,
-        rain = 40,
-        snow = 38,
-        storm = 666,
-        cloudy = 30,
-        fog = 20
-    }
-
-    local conditionCode = conditionCodes[hcCondition]
-    
-    if conditionCode
-    then
-        self.devicesMap["weather"]:updateProperty("ConditionCode", conditionCode)
-        self.devicesMap["weather"]:updateProperty("WeatherCondition", condition)
-    end
+    self.devicesMap["weather"]:updateProperty("ConditionCode", code)
+    self.devicesMap["weather"]:updateProperty("WeatherCondition", string.lower(condition.main))
 end
 
+QuickApp.codes = {
+    -- clear
+    ["800d"] = 32,
+    ["800n"] = 31,
+    -- clouds
+    ["801d"] = 28, ["802d"] = 28, ["803d"] = 26, ["804d"] = 26,
+    ["801n"] = 27, ["802n"] = 27, ["803n"] = 26, ["804n"] = 26,
+    -- atmosphere
+    ["701d"] = 20, ["711d"] = 20, ["721d"] = 20, ["731d"] = 2, ["741d"] = 20,
+    ["751d"] = 24, ["761d"] = 24, ["762d"] = 24, ["771d"] = 24, ["781d"] = 1,
+    ["701n"] = 20, ["711n"] = 20, ["721n"] = 20, ["731n"] = 2, ["741n"] = 20,
+    ["751n"] = 24, ["761n"] = 24, ["762n"] = 24, ["771n"] = 24, ["781n"] = 1,
+    -- snow
+    ["600d"] = 41,["601d"] = 16, ["602d"] = 13, ["611d"] = 7, ["612d"] = 7, ["613d"] = 7,
+    ["615d"] = 7, ["616d"] = 7, ["620d"] = 7, ["621d"] = 7, ["622d"] = 7,
+    ["600n"] = 41, ["601n"] = 16, ["602n"] = 13, ["611n"] = 7, ["612n"] = 7, ["613n"] = 7, 
+    ["615n"] = 7, ["616n"] = 7, ["620n"] = 7, ["621n"] = 7, ["622n"] = 7,
+    -- rain
+    ["500d"] = 11, ["501d"] = 11, ["502d"] = 11, ["503d"] = 11, ["504d"] = 11,
+    ["511d"] = 7, ["520d"] = 11, ["521d"] = 11, ["522d"] = 11, ["531d"] = 11,
+    ["500n"] = 11, ["501n"] = 11, ["502n"] = 11, ["503n"] = 11, ["504n"] = 11,
+    ["511n"] = 7, ["520n"] = 11, ["521n"] = 11, ["522n"] = 11, ["531n"] = 11,
+    -- drizzle
+    ["300d"] = 9, ["301d"] = 9, ["302d"] = 9, ["310d"] = 9, ["311d"] = 9,
+    ["312d"] = 9, ["313d"] = 9, ["314d"] = 9, ["321d"] = 9,
+    ["300n"] = 9, ["301n"] = 9, ["302n"] = 9, ["310n"] = 9, ["311n"] = 9,
+    ["312n"] = 9, ["313n"] = 9, ["314n"] = 9, ["321n"] = 9,
+    -- thunderstorm
+    ["200d"] = 6, ["201d"] = 6, ["202d"] = 6, ["210d"] = 4, ["211d"] = 4,
+    ["212d"] = 37, ["221d"] = 37, ["230d"] = 35, ["231d"] = 35, ["232d"] = 35,
+    ["200n"] = 6, ["201n"] = 6, ["202n"] = 6, ["210n"] = 4, ["211n"] = 4, 
+    ["212n"] = 37, ["221n"] = 37, ["230n"] = 35, ["231n"] = 35, ["232n"] = 35,
+}
 
 -----------------------------------------------------------------------------
 --                  CHILDS                      -----------------------------
