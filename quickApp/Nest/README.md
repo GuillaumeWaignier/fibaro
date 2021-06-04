@@ -1,5 +1,7 @@
 # QuickApp for Nest devices
 
+QuickApp used to control Nest Thermostat on Fibaro HC3
+
 Device type: *device controller*
 
 ## Required
