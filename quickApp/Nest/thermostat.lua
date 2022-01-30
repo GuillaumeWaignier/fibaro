@@ -11,7 +11,7 @@ function NestThermostat:__init(device)
     self:trace("NestThermostat init")
 
     -- set supported modes for thermostat
-    self:updateProperty("supportedThermostatModes", {"Off", "Heat", "Eco"})
+    self:updateProperty("supportedThermostatModes", {})
 
     -- setup default values
     self:updateProperty("thermostatMode", "Off")
@@ -27,6 +27,8 @@ function NestThermostat:updateDevice(body)
 end
 
 function NestThermostat:updateMode(body) 
+    self:updateAvailableModes(body)
+
     thermostatMode = body['traits']['sdm.devices.traits.ThermostatMode']['mode']
     thermostatModeEco = body['traits']['sdm.devices.traits.ThermostatEco']['mode']
 
@@ -36,10 +38,49 @@ function NestThermostat:updateMode(body)
         self:updateProperty("thermostatMode", "Eco")
     elseif thermostatMode == "HEAT" then
         self:updateProperty("thermostatMode", "Heat")
+    elseif thermostatMode == "COOL" then
+        self:updateProperty("thermostatMode", "Cool")
     else
       self:error("updateMode() failed", "Unknown mode " .. thermostatMode .. " / " .. thermostatModeEco)
     end
 end
+
+function NestThermostat:updateAvailableModes(body)
+    local thermostatAvailableMode = body['traits']['sdm.devices.traits.ThermostatMode']['availableModes']
+    local thermostatAvailableModeEco = body['traits']['sdm.devices.traits.ThermostatEco']['availableModes']
+
+    local index=1
+    local supportedThermostatModes = {}
+
+    for i,mode in ipairs(thermostatAvailableMode)
+    do
+      if mode == "OFF"
+      then
+        supportedThermostatModes[index] = "Off"
+        index = index+1
+      end
+      if mode == "HEAT"
+      then
+        supportedThermostatModes[index] = "Heat"
+        index = index+1
+      end
+      if mode == "COOL"
+      then
+        supportedThermostatModes[index] = "Cool"
+        index = index+1
+      end
+    end
+    for i,mode in ipairs(thermostatAvailableModeEco)
+    do
+      if mode == "MANUAL_ECO"
+      then
+        supportedThermostatModes[index] = "Eco"
+        index = index+1
+      end
+    end
+    self:updateProperty("supportedThermostatModes", supportedThermostatModes)
+end
+
 
 -- handle action for mode change 
 function NestThermostat:setThermostatMode(mode)
@@ -82,6 +123,20 @@ function NestThermostat:setThermostatMode(mode)
                 )
             end
         )
+    elseif mode == 'Cool' then
+        self:callNestApi("sdm.devices.commands.ThermostatMode.SetMode",
+            "mode",
+            "COOL",
+            function()
+                self:callNestApi("sdm.devices.commands.ThermostatEco.SetMode",
+                    "mode",
+                    "OFF",
+                    function()
+                        self:updateProperty("thermostatMode", mode)
+                    end
+                )
+            end
+        )
     else
         self:error("Unknow mode " .. mode)
     end
@@ -89,13 +144,29 @@ end
 
 -- handle action for setting set point for heating
 function NestThermostat:setHeatingThermostatSetpoint(value)
-    self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetHeat",
-        "heatCelsius",
-        value,
-        function()
-            self:updateProperty("heatingThermostatSetpoint", value)
-        end
-    )
+    self:debug("update temperature " .. value .. " with mode " .. self.properties.thermostatMode)
+
+    if (self.properties.thermostatMode == "Heat")
+    then
+      self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetHeat",
+          "heatCelsius",
+          value,
+          function()
+              self:updateProperty("heatingThermostatSetpoint", value)
+          end
+      )
+    end
+
+    if (self.properties.thermostatMode == "Cool")
+    then
+      self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetCool",
+          "coolCelsius",
+          value,
+          function()
+              self:updateProperty("heatingThermostatSetpoint", value)
+          end
+      )
+    end
 end
 
 -- Call Nest API
