@@ -23,7 +23,8 @@ function NestThermostat:updateDevice(body)
     
     self:updateMode(body)
     local temp = body['traits']['sdm.devices.traits.ThermostatTemperatureSetpoint']['heatCelsius']
-    self:updateProperty("heatingThermostatSetpoint", temp)
+    local roundedValue = math.ceil(temp * 10) / 10
+    self:updateProperty("heatingThermostatSetpoint", roundedValue)
 end
 
 function NestThermostat:updateMode(body) 
@@ -146,13 +147,15 @@ end
 function NestThermostat:setHeatingThermostatSetpoint(value)
     self:debug("update temperature " .. value .. " with mode " .. self.properties.thermostatMode)
 
+    local roundedValue = math.ceil(value * 10) / 10
+
     if (self.properties.thermostatMode == "Heat")
     then
       self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetHeat",
           "heatCelsius",
-          value,
+          roundedValue,
           function()
-              self:updateProperty("heatingThermostatSetpoint", value)
+              self:updateProperty("heatingThermostatSetpoint", roundedValue)
           end
       )
     end
@@ -161,9 +164,9 @@ function NestThermostat:setHeatingThermostatSetpoint(value)
     then
       self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetCool",
           "coolCelsius",
-          value,
+          roundedValue,
           function()
-              self:updateProperty("heatingThermostatSetpoint", value)
+              self:updateProperty("heatingThermostatSetpoint", roundedValue)
           end
       )
     end
@@ -192,11 +195,11 @@ function NestThermostat:callNestApi(command, key, value, callback)
                 self:debug("callNestApi() success " .. message)
                 callback()
             else
-                self:error("callNestApi() " .. message .. " status is " .. response.status .. ": ", json.encode(response.data))
+                self:error("callNestApi() " .. message .. " status is " .. response.status .. ": " ..  response.data)
             end
         end,
         error = function(error)
-            self:error("callNestApi() " .. message .." failed: ", json.encode(error))
+            self:error("callNestApi() " .. message .." failed: " .. json.encode(error))
         end
     })
 end
