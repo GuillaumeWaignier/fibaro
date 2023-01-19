@@ -16,15 +16,15 @@ function NestThermostat:__init(device)
     -- setup default values
     self:updateProperty("thermostatMode", "Off")
     self:updateProperty("heatingThermostatSetpoint", 8)
+    self:updateProperty("log", "")
 end
 
 function NestThermostat:updateDevice(body)
     --self:debug("updateDevice " .. self.id .. " with body " .. json.encode(body))
     
     self:updateMode(body)
-    local temp = body['traits']['sdm.devices.traits.ThermostatTemperatureSetpoint']['heatCelsius']
-    local roundedValue = math.ceil(temp * 10) / 10
-    self:updateProperty("heatingThermostatSetpoint", roundedValue)
+    self:updateTemperatureSetPoint(body)
+    self:updateHvacStatus(body)
 end
 
 function NestThermostat:updateMode(body) 
@@ -41,6 +41,8 @@ function NestThermostat:updateMode(body)
         self:updateProperty("thermostatMode", "Heat")
     elseif thermostatMode == "COOL" then
         self:updateProperty("thermostatMode", "Cool")
+    elseif thermostatMode == "HEATCOOL" then
+        self:updateProperty("thermostatMode", "Auto")
     else
       self:error("updateMode() failed", "Unknown mode " .. thermostatMode .. " / " .. thermostatModeEco)
     end
@@ -70,6 +72,11 @@ function NestThermostat:updateAvailableModes(body)
         supportedThermostatModes[index] = "Cool"
         index = index+1
       end
+      if mode == "HEATCOOL"
+      then
+        supportedThermostatModes[index] = "Auto"
+        index = index+1
+      end
     end
     for i,mode in ipairs(thermostatAvailableModeEco)
     do
@@ -82,6 +89,31 @@ function NestThermostat:updateAvailableModes(body)
     self:updateProperty("supportedThermostatModes", supportedThermostatModes)
 end
 
+function NestThermostat:updateTemperatureSetPoint(body)
+    if body['traits']['sdm.devices.traits.ThermostatTemperatureSetpoint']['heatCelsius'] ~= nil
+    then
+      local temp = body['traits']['sdm.devices.traits.ThermostatTemperatureSetpoint']['heatCelsius']
+      local roundedValue = math.ceil(temp * 10) / 10
+      self:updateProperty("heatingThermostatSetpoint", roundedValue)
+    end
+
+    if body['traits']['sdm.devices.traits.ThermostatTemperatureSetpoint']['coolCelsius'] ~= nil
+    then
+      local temp = body['traits']['sdm.devices.traits.ThermostatTemperatureSetpoint']['coolCelsius']
+      local roundedValue = math.ceil(temp * 10) / 10
+      self:updateProperty("coolingThermostatSetpoint", roundedValue)
+    end
+end
+
+function NestThermostat:updateHvacStatus(body)
+    if body['traits']['sdm.devices.traits.ThermostatHvac'] ~= nil
+    then
+      local status = body['traits']['sdm.devices.traits.ThermostatHvac']['status']
+      self:updateProperty("log", status)
+    else
+      self:updateProperty("log", "")
+    end
+end
 
 -- handle action for mode change 
 function NestThermostat:setThermostatMode(mode)
@@ -138,6 +170,20 @@ function NestThermostat:setThermostatMode(mode)
                 )
             end
         )
+    elseif mode == 'Auto' then
+        self:callNestApi("sdm.devices.commands.ThermostatMode.SetMode",
+            "mode",
+            "HEATCOOL",
+            function()
+                self:callNestApi("sdm.devices.commands.ThermostatEco.SetMode",
+                    "mode",
+                    "OFF",
+                    function()
+                        self:updateProperty("thermostatMode", mode)
+                    end
+                )
+            end
+        )
     else
         self:error("Unknow mode " .. mode)
     end
@@ -159,6 +205,13 @@ function NestThermostat:setHeatingThermostatSetpoint(value)
           end
       )
     end
+end
+
+-- handle action for setting set point for cooling
+function QuickApp:setCoolingThermostatSetpoint(value)
+    self:debug("update temperature " .. value .. " with mode " .. self.properties.thermostatMode)
+
+    local roundedValue = math.ceil(value * 10) / 10
 
     if (self.properties.thermostatMode == "Cool")
     then
@@ -166,7 +219,7 @@ function NestThermostat:setHeatingThermostatSetpoint(value)
           "coolCelsius",
           roundedValue,
           function()
-              self:updateProperty("heatingThermostatSetpoint", roundedValue)
+              self:updateProperty("coolingThermostatSetpoint", roundedValue)
           end
       )
     end
