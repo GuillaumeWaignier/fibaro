@@ -15,7 +15,7 @@ function QuickApp:onInit()
     -- Here you can assign how child instances will be created.
     -- If type is not defined, QuickAppChild will be used.
     self:initChildDevices({
-        ["com.fibaro.hvacSystemHeat"] = NestThermostat,
+        ["com.fibaro.hvacSystemAuto"] = NestThermostat,
         ["com.fibaro.temperatureSensor"] = NestThermostatTemperature,
         ["com.fibaro.humiditySensor"] = NestThermostatHumidity,
     })
@@ -143,12 +143,12 @@ function QuickApp:getRefreshToken()
                 self:debug("getRefreshToken() succeed")
                 self:trace(self.accessToken .. "   " ..  self.refreshToken)
             else
-                self:error("getRefreshToken() status is " .. response.status .. ": ", response.data)
+                self:error("getRefreshToken() status is " .. response.status .. ": " .. response.data)
                 self.step="mail"
             end
         end,
         error = function(error)
-            self:error("getRefreshToken() failed: ", json.encode(error))
+            self:error("getRefreshToken() failed: " .. json.encode(error))
             self.step="mail"
         end
     })
@@ -175,13 +175,13 @@ function QuickApp:getAccessToken()
                 self.step = "device"
                 --self:debug("getAccessToken() succeed " .. self.accessToken)
             else
-                self:error("getAccessToken() status is " .. response.status .. ": ", response.data)
+                self:error("getAccessToken() status is " .. response.status .. ": " .. response.data)
                 self:setVariable("refreshToken", "")
                 self.step = "refreshToken"
             end
         end,
         error = function(error)
-            self:error("getAccessToken() failed: ", json.encode(error))
+            self:error("getAccessToken() failed: " .. json.encode(error))
             self:setVariable("refreshToken", "")
             self.step = "refreshToken"
         end
@@ -211,11 +211,11 @@ function QuickApp:listNestDevice()
             elseif response.status == 401 then
                 self.step = "accessToken"
             else
-                self:error("listNestDevice() status is " .. response.status .. ": ", response.data)
+                self:error("listNestDevice() status is " .. response.status .. ": " .. response.data)
             end
         end,
         error = function(error)
-            self:error("listNestDevice() failed: ", json.encode(error))
+            self:error("listNestDevice() failed: " .. json.encode(error))
         end
     })
 end
@@ -229,7 +229,7 @@ function QuickApp:updateNestDevices(body)
     local name = device['name']
     if device['traits']['sdm.devices.traits.ThermostatTemperatureSetpoint'] ~= nil
     then
-        local fibaroDevice = self:getOrCreateChildDevice(name, device, "com.fibaro.hvacSystemHeat")
+        local fibaroDevice = self:getOrCreateChildDevice(name, device, "com.fibaro.hvacSystemAuto")
         fibaroDevice:updateDevice(device)
     end
     if device['traits']['sdm.devices.traits.Temperature'] ~= nil
@@ -261,9 +261,9 @@ end
 function QuickApp:createChild(name, device, type)
     local child = nil
 
-    if type  == 'com.fibaro.hvacSystemHeat'
+    if type  == 'com.fibaro.hvacSystemAuto'
     then
-        child = self:createChildDevice({name = name,type = "com.fibaro.hvacSystemHeat"}, NestThermostat)
+        child = self:createChildDevice({name = name,type = "com.fibaro.hvacSystemAuto"}, NestThermostat)
     elseif type == "com.fibaro.temperatureSensor"
     then
         child = self:createChildDevice({name = name,type = "com.fibaro.temperatureSensor"}, NestThermostatTemperature)
