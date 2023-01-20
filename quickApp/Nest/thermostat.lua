@@ -103,6 +103,22 @@ function NestThermostat:updateTemperatureSetPoint(body)
       local roundedValue = math.ceil(temp * 10) / 10
       self:updateProperty("coolingThermostatSetpoint", roundedValue)
     end
+
+    if (self.properties.thermostatMode == "Eco")
+    then
+      if body['traits']['sdm.devices.traits.ThermostatEco']['heatCelsius'] ~= nil
+      then
+        local temp = body['traits']['sdm.devices.traits.ThermostatEco']['heatCelsius']
+        local roundedValue = math.ceil(temp * 10) / 10
+        self:updateProperty("heatingThermostatSetpoint", roundedValue)
+      end
+      if body['traits']['sdm.devices.traits.ThermostatEco']['coolCelsius'] ~= nil
+      then
+        local temp = body['traits']['sdm.devices.traits.ThermostatEco']['coolCelsius']
+        local roundedValue = math.ceil(temp * 10) / 10
+        self:updateProperty("coolingThermostatSetpoint", roundedValue)
+      end
+    end
 end
 
 function NestThermostat:updateHvacStatus(body)
@@ -119,15 +135,12 @@ end
 function NestThermostat:setThermostatMode(mode)
     self:debug("update mode " .. mode)
     
-    local modeNest = string.upper(mode)
-    if modeNest == 'ECO' then
+    if mode == 'Eco' then
         self:callNestApi("sdm.devices.commands.ThermostatMode.SetMode",
-            "mode",
-            "HEAT",
+            {['mode'] = "HEAT"},
             function()
                 self:callNestApi("sdm.devices.commands.ThermostatEco.SetMode",
-                    "mode",
-                    "MANUAL_ECO",
+                    {['mode'] = "MANUAL_ECO"},
                     function()
                         self:updateProperty("thermostatMode", mode)
                     end
@@ -136,20 +149,17 @@ function NestThermostat:setThermostatMode(mode)
         )
     elseif mode == 'Off' then
         self:callNestApi("sdm.devices.commands.ThermostatMode.SetMode",
-            "mode",
-            "OFF",
+            {['mode'] = "OFF"},
             function()
                  self:updateProperty("thermostatMode", mode)
             end
         )
     elseif mode == 'Heat' then
         self:callNestApi("sdm.devices.commands.ThermostatMode.SetMode",
-            "mode",
-            "HEAT",
+            {['mode'] = "HEAT"},
             function()
                 self:callNestApi("sdm.devices.commands.ThermostatEco.SetMode",
-                    "mode",
-                    "OFF",
+                    {['mode'] = "OFF"},
                     function()
                         self:updateProperty("thermostatMode", mode)
                     end
@@ -158,12 +168,10 @@ function NestThermostat:setThermostatMode(mode)
         )
     elseif mode == 'Cool' then
         self:callNestApi("sdm.devices.commands.ThermostatMode.SetMode",
-            "mode",
-            "COOL",
+            {['mode'] = "COOL"},
             function()
                 self:callNestApi("sdm.devices.commands.ThermostatEco.SetMode",
-                    "mode",
-                    "OFF",
+                    {['mode'] = "OFF"},
                     function()
                         self:updateProperty("thermostatMode", mode)
                     end
@@ -172,12 +180,10 @@ function NestThermostat:setThermostatMode(mode)
         )
     elseif mode == 'Auto' then
         self:callNestApi("sdm.devices.commands.ThermostatMode.SetMode",
-            "mode",
-            "HEATCOOL",
+            {['mode'] = "HEATCOOL"},
             function()
                 self:callNestApi("sdm.devices.commands.ThermostatEco.SetMode",
-                    "mode",
-                    "OFF",
+                    {['mode'] = "OFF"},
                     function()
                         self:updateProperty("thermostatMode", mode)
                     end
@@ -198,8 +204,15 @@ function NestThermostat:setHeatingThermostatSetpoint(value)
     if (self.properties.thermostatMode == "Heat")
     then
       self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetHeat",
-          "heatCelsius",
-          roundedValue,
+          {['heatCelsius'] = roundedValue},
+          function()
+              self:updateProperty("heatingThermostatSetpoint", roundedValue)
+          end
+      )
+    elseif (self.properties.thermostatMode == "Auto")
+    then
+      self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetRange",
+          {['heatCelsius'] = roundedValue, ['coolCelsius'] = self.properties.coolingThermostatSetpoint},
           function()
               self:updateProperty("heatingThermostatSetpoint", roundedValue)
           end
@@ -216,8 +229,15 @@ function QuickApp:setCoolingThermostatSetpoint(value)
     if (self.properties.thermostatMode == "Cool")
     then
       self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetCool",
-          "coolCelsius",
-          roundedValue,
+          {['coolCelsius'] = roundedValue},
+          function()
+              self:updateProperty("coolingThermostatSetpoint", roundedValue)
+          end
+      )
+    elseif (self.properties.thermostatMode == "Auto")
+    then
+      self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetRange",
+          {['heatCelsius'] = self.properties.heatingThermostatSetpoint, ['coolCelsius'] = roundedValue},
           function()
               self:updateProperty("coolingThermostatSetpoint", roundedValue)
           end
@@ -226,8 +246,8 @@ function QuickApp:setCoolingThermostatSetpoint(value)
 end
 
 -- Call Nest API
-function NestThermostat:callNestApi(command, key, value, callback)
-    local message = string.format("%s (%s:%s)", command, key, value)
+function NestThermostat:callNestApi(command, params, callback)
+    local message = string.format("%s (%s)", command, json.encode(params))
     local url = string.format("https://smartdevicemanagement.googleapis.com/v1/%s:executeCommand", self:getVariable("uid"))
 
     self.parent.http:request(url, {
@@ -240,7 +260,7 @@ function NestThermostat:callNestApi(command, key, value, callback)
             },
             data = json.encode({
                     ['command'] = command,
-                    ['params'] = {[key] = value}
+                    ['params'] = params
                 })
         },
         success = function(response)
