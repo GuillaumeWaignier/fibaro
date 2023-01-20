@@ -64,4 +64,29 @@ This URL is used to configure authorization. Do:
     - Set this code inside the corresponding quickApp variable named 'code'.
 
 
+## Troubleshooting
 
+* Fibaro log
+
+You can check the console log
+```bash
+[20.01.2023] [14:44:09] [DEBUG] [QUICKAPP245]: QuickApp:onInit
+[20.01.2023] [14:44:09] [TRACE] [QUICKAPP245]: NestThermostatTemperature init
+[20.01.2023] [14:44:09] [TRACE] [QUICKAPP245]: NestThermostatHumidity init
+[20.01.2023] [14:44:09] [TRACE] [QUICKAPP245]: NestThermostat init
+[20.01.2023] [14:44:09] [TRACE] [QUICKAPP245]: Child devices:
+[20.01.2023] [14:44:09] [TRACE] [QUICKAPP245]: [248] Nest Humidity of type com.fibaro.humiditySensor with UID enterprises/xxxHumidity
+[20.01.2023] [14:44:09] [TRACE] [QUICKAPP245]: [405] Thermostat of type com.fibaro.hvacSystemAuto with UID enterprises/xxx
+[20.01.2023] [14:44:09] [TRACE] [QUICKAPP245]: [247] Nest Temp of type com.fibaro.temperatureSensor with UID enterprises/xxxTemperature
+[20.01.2023] [15:18:58] [DEBUG] [QUICKAPP245]: onAction: {"actionName":"setHeatingThermostatSetpoint","args":[18],"deviceId":405}
+[20.01.2023] [15:18:58] [DEBUG] [QUICKAPP245]: update temperature 18 with mode Heat
+[20.01.2023] [15:19:00] [DEBUG] [QUICKAPP245]: callNestApi() success sdm.devices.commands.ThermostatTemperatureSetpoint.SetHeat ({"heatCelsius":18.0}))
+```
+
+* Google Nest API
+
+You can check the performance of API call with [https://console.cloud.google.com/apis](https://console.cloud.google.com/apis).
+
+The API name is *Smart Device Management API*
+
+![API](SmartDeviceManagementAPI.png)
