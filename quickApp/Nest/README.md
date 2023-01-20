@@ -1,4 +1,4 @@
-# QuickApp for Nest devices
+# QuickApp for Nest devices with Google account
 
 QuickApp used to control Nest Thermostat on Fibaro HC3
 
@@ -10,9 +10,9 @@ Device type: *device controller*
 
 *Account permissions requirement*: access and control your thermostat
 
-*Features*: change the heating point, change mode, get state, get ambiant temperature and humidity
+*Features*: change the heating point, change mode, get mode, get state, get ambiant temperature and humidity
 
-*Supported mode*: Off, Heat, Manual Eco
+*Supported mode*: Off, Heat, Manual Eco, Cooling (if Thermostat support it)
 
 ![Screenshot](Nest_quickapp.png)
 
