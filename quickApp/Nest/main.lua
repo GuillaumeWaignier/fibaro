@@ -5,6 +5,8 @@
 -- Basic knowledge of object-oriented programming (oop) is required. 
 -- Learn more about oop: https://en.wikipedia.org/wiki/Object-oriented_programming 
 -- Learn more about managing child devices: https://manuals.fibaro.com/home-center-3-quick-apps/
+-- Author: Guillaume Waignier
+-- Apache License 2.0
 
 function QuickApp:onInit()
     self:debug("QuickApp:onInit")
@@ -134,6 +136,7 @@ function QuickApp:getRefreshToken()
             data = nil
         },
         success = function(response)
+            -- self:debug(json.encode(response))
             if response.status == 200 then
                 body = json.decode(response.data)
                 self.accessToken = "Bearer " .. body['access_token']
