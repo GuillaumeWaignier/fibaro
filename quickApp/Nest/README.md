@@ -66,9 +66,43 @@ This URL is used to configure authorization. Do:
 
 ## Troubleshooting
 
+* Authentication - ProjectId problem
+
+In the console log, you have this kind of log (you have to wait 2*frequency because each authentication step is made one loop).
+
+```bash
+[23.01.2023] [14:06:26] [ERROR] [QUICKAPP245]: getAccessToken() status is 400: { "error
+[23.01.2023] [14:07:26] [DEBUG] [QUICKAPP245]: Get Google refresh token
+[23.01.2023] [14:07:26] [ERROR] [QUICKAPP245]: getRefreshToken() status is 400: { "error
+[23.01.2023] [14:08:26] [ERROR] [QUICKAPP245]: Need to refresh Nest Authentication code for quickApp 245 with https://nestservices.google.com/partnerconnections/xxx/auth?redirect_uri=https://www.google.com&access_type=offline&prompt=consent&client_id=xxx.apps.googleusercontent.com&response_type=code&scope=https://www.googleapis.com/auth/sdm.service
+```
+
+When you open the URL, after logging into your Google account, if you got this kind of error, you have made errors in projectId. Check if [all installation steps](#detailled-installation-guide) are correct.
+
+![Authentication_error_projectid](authentication_error_projectid.png)
+
+
+* Authentication - ClientId problem
+
+```bash
+[23.01.2023] [14:06:26] [ERROR] [QUICKAPP245]: getAccessToken() status is 401: { "error
+[23.01.2023] [14:07:26] [DEBUG] [QUICKAPP245]: Get Google refresh token
+[23.01.2023] [14:07:26] [ERROR] [QUICKAPP245]: getRefreshToken() status is 401: { "error
+[23.01.2023] [14:08:26] [ERROR] [QUICKAPP245]: Need to refresh Nest Authentication code for quickApp 245 with https://nestservices.google.com/partnerconnections/xxx/auth?redirect_uri=https://www.google.com&access_type=offline&prompt=consent&client_id=xxx.apps.googleusercontent.com&response_type=code&scope=https://www.googleapis.com/auth/sdm.service
+```
+
+If you got this kind of error, your projectId is correct and you have made errors in clientId. Check if [all installation steps](#detailled-installation-guide) are correct.
+
+
+![Authentication_error_clientid](authentication_error_clientId.png)
+
+
+
 * Fibaro log
 
-You can check the console log
+You can check the console log.
+When you start the quickApp, 
+
 ```bash
 [20.01.2023] [14:44:09] [DEBUG] [QUICKAPP245]: QuickApp:onInit
 [20.01.2023] [14:44:09] [TRACE] [QUICKAPP245]: NestThermostatTemperature init
@@ -82,6 +116,14 @@ You can check the console log
 [20.01.2023] [15:18:58] [DEBUG] [QUICKAPP245]: update temperature 18 with mode Heat
 [20.01.2023] [15:19:00] [DEBUG] [QUICKAPP245]: callNestApi() success sdm.devices.commands.ThermostatTemperatureSetpoint.SetHeat ({"heatCelsius":18.0}))
 ```
+
+* Authentication error
+
+If you have an error like this in the log when the quickApp starts:
+
+```bash
+[20.01.2023] [14:44:09] [DEBUG] [QUICKAPP245]: QuickApp:onInit
+
 
 * Google Nest API
 
