@@ -81,7 +81,7 @@ In the console log, you have this kind of log (you have to wait 2*frequency beca
 [23.01.2023] [14:08:26] [ERROR] [QUICKAPP245]: Need to refresh Nest Authentication code for quickApp 245 with https://nestservices.google.com/partnerconnections/xxx/auth?redirect_uri=https://www.google.com&access_type=offline&prompt=consent&client_id=xxx.apps.googleusercontent.com&response_type=code&scope=https://www.googleapis.com/auth/sdm.service
 ```
 
-When you open the URL, after logging into your Google account, if you got this kind of error, you have made errors in projectId. Check if [all installation steps](#detailled-installation-guide) are correct.
+When you open the URL, after logging into your Google account, if you got this kind of error, you have made errors in **_"Project ID"_**. Check if [all installation steps](#detailled-installation-guide) are correct.
 
 ![Authentication_error_projectid](img/authentication_error_projectid.png)
 
@@ -95,7 +95,7 @@ When you open the URL, after logging into your Google account, if you got this k
 [23.01.2023] [14:08:26] [ERROR] [QUICKAPP245]: Need to refresh Nest Authentication code for quickApp 245 with https://nestservices.google.com/partnerconnections/xxx/auth?redirect_uri=https://www.google.com&access_type=offline&prompt=consent&client_id=xxx.apps.googleusercontent.com&response_type=code&scope=https://www.googleapis.com/auth/sdm.service
 ```
 
-If you got this kind of error, your projectId is correct and you have made errors in clientId. Check if [all installation steps](#detailled-installation-guide) are correct.
+If you got this kind of error, your projectId is correct and you have made errors in **_"OAuth 2.0 Client ID"_**. Check if [all installation steps](#detailled-installation-guide) are correct.
 
 
 ![Authentication_error_clientid](img/authentication_error_clientid.png)
@@ -108,7 +108,7 @@ When your projectId and clientId is correct you have a page like this:
 ![acls](img/acl.png)
 
 At the end of the process, you have the [Authentication code](#get-the-authentication-code).
-After setting the code in the quickApp's parameter, if you get an error log like this, you made have a problem in clientSecret or code.
+After setting the code in the quickApp's parameter, if you get an error log like this, you made have a problem in **_"Client Secret"_** or **_"Authentication code"_**.
 
 ```bash
 [23.01.2023] [14:06:26] [ERROR] [QUICKAPP245]: getAccessToken() status is 401: { "error
