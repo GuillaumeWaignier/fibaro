@@ -196,18 +196,10 @@ function NestThermostat:setThermostatMode(mode)
 end
 
 -- handle action for setting set point for heating
-function NestThermostat:setHeatingThermostatSetpoint(value, scale)
-    self:debug("update temperature " .. value .. ", scale " .. scale .. ", with mode " .. self.properties.thermostatMode)
-
-    --When the setpoint scale is in Fahrenheit, convert the value to Celsius
-    local degreesC = value
-    if (scale ~= nil) and (scale == 'F')
-    then
-        degreesC = (degreesC - 32) * 5 / 9
-        self:debug(string.format('Converting %.3f\176F to %.3f\176C', value, degreesC))
-    end
-
-    local roundedValue = math.ceil(degreesC * 10) / 10
+function NestThermostat:setHeatingThermostatSetpoint(value)
+    self:debug(string.format('Update heating temperature %f%s with mode %s', value, self.properties.unit, self.properties.thermostatMode))
+    
+    local roundedValue = self:getDegreesCelsius(value)
 
     if (self.properties.thermostatMode == "Heat")
     then
@@ -220,7 +212,7 @@ function NestThermostat:setHeatingThermostatSetpoint(value, scale)
     elseif (self.properties.thermostatMode == "Auto")
     then
       self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetRange",
-          {['heatCelsius'] = roundedValue, ['coolCelsius'] = self.properties.coolingThermostatSetpoint},
+          {['heatCelsius'] = roundedValue, ['coolCelsius'] = self:getDegreesCelsius(self.properties.coolingThermostatSetpoint)},
           function()
               self:updateProperty("heatingThermostatSetpoint", roundedValue)
           end
@@ -229,18 +221,10 @@ function NestThermostat:setHeatingThermostatSetpoint(value, scale)
 end
 
 -- handle action for setting set point for cooling
-function NestThermostat:setCoolingThermostatSetpoint(value, scale)
-    self:debug("update temperature " .. value .. ", scale " .. scale .. ", with mode " .. self.properties.thermostatMode)
+function NestThermostat:setCoolingThermostatSetpoint(value)
+    self:debug(string.format('Update cooling temperature %f%s with mode %s', value, self.properties.unit, self.properties.thermostatMode))
 
-    --When the setpoint scale is in Fahrenheit, convert the value to Celsius
-    local degreesC = value
-    if (scale ~= nil) and (scale == 'F')
-    then
-        degreesC = (degreesC - 32) * 5 / 9
-        self:debug(string.format('Converting %.3f\176F to %.3f\176C', value, degreesC))
-    end
-
-    local roundedValue = math.ceil(degreesC * 10) / 10
+    local roundedValue = self:getDegreesCelsius(value)
 
     if (self.properties.thermostatMode == "Cool")
     then
@@ -253,12 +237,23 @@ function NestThermostat:setCoolingThermostatSetpoint(value, scale)
     elseif (self.properties.thermostatMode == "Auto")
     then
       self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetRange",
-          {['heatCelsius'] = self.properties.heatingThermostatSetpoint, ['coolCelsius'] = roundedValue},
+          {['heatCelsius'] = self:getDegreesCelsius(self.properties.heatingThermostatSetpoint), ['coolCelsius'] = roundedValue},
           function()
               self:updateProperty("coolingThermostatSetpoint", roundedValue)
           end
       )
     end
+end
+
+--When the unit is in Fahrenheit, convert the value to Celsius
+function NestThermostat:getDegreesCelsius(value)
+  local degreesC = value
+  if (self.properties.unit == 'F')
+    then
+        degreesC = (degreesC - 32) * 5 / 9
+        self:debug(string.format('Converting %.3f°F to %.3f°C', value, degreesC))
+    end
+    return math.ceil(degreesC * 10) / 10
 end
 
 -- Call Nest API
