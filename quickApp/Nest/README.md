@@ -6,7 +6,9 @@ Device type: *device controller*
 
 ## Supported device type
 
-* Nest Thermostat
+* Nest Thermostat 
+
+Support for multiples Thermostats in the same account
 
 *Account permissions requirement*: access and control your thermostat
 
@@ -47,7 +49,7 @@ These steps are:
 | Name          | Description   | Example of value |
 | ------------- | ------------- |------------------|
 | projectId    |  **_"Project ID"_** created in [https://console.nest.google.com/device-access/project-list](https://console.nest.google.com/device-access/project-list) (step 3 of the detailled installation guide)    |  32c4c2bc-fe0d-461b-b51c-f3885afff2f0 |
-| clientId  | **_"OAuth 2.0 Client ID"_** created in [https://console.developers.google.com/apis/credentials](https://console.developers.google.com/apis/credentials) (step 2 of the detailled installation guide)  | |
+| clientId  | **_"OAuth 2.0 Client ID"_** created in [https://console.developers.google.com/apis/credentials](https://console.developers.google.com/apis/credentials) (step 2 of the detailled installation guide)  | xxxxxxx-xxxxxxxxxxxxxxx.apps.googleusercontent.com |
 | clientSecret  |  **_"Client Secret"_** created in [https://console.developers.google.com/apis/credentials](https://console.developers.google.com/apis/credentials) (step 2 of the detailled installation guide)  | |
 | code  | **_"Authentication code"_**. Set xxx for the fisrt time and see below  | 4/xxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |
 | frequency  | delay in second to refresh the value  | 60 |
@@ -60,7 +62,7 @@ These steps are:
 Once the quickApp is started, after few minutes, you will receive a mail, notification and error log containing a URL.
 This URL is used to configure authorization. Do:
 - Allow to get information about your home (at step 1)
-- Allow access and control to your Nest Thermostat
+- Allow access and control to your Nest Thermostat ([Screenshot](#authentication---clientsecret-problem))
 - At the end, you will be redirected to an URL of the form https://www.google.com/?code=4/xxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&scope=https://www.googleapis.com/auth/sdm.service
     - The part 4/xxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx is the **_"Authentication code"_**
     - Set this code inside the corresponding quickApp variable named 'code'.
