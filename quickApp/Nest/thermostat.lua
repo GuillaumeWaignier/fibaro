@@ -196,10 +196,18 @@ function NestThermostat:setThermostatMode(mode)
 end
 
 -- handle action for setting set point for heating
-function NestThermostat:setHeatingThermostatSetpoint(value)
-    self:debug("update temperature " .. value .. " with mode " .. self.properties.thermostatMode)
+function NestThermostat:setHeatingThermostatSetpoint(value, scale)
+    self:debug("update temperature " .. value .. ", scale " .. scale .. ", with mode " .. self.properties.thermostatMode)
 
-    local roundedValue = math.ceil(value * 10) / 10
+    --When the setpoint scale is in Fahrenheit, convert the value to Celsius
+    local degreesC = value
+    if (scale ~= nil) and (scale == 'F')
+    then
+        degreesC = (degreesC - 32) * 5 / 9
+        self:debug(string.format('Converting %.3f\176F to %.3f\176C', value, degreesC))
+    end
+
+    local roundedValue = math.ceil(degreesC * 10) / 10
 
     if (self.properties.thermostatMode == "Heat")
     then
@@ -221,10 +229,18 @@ function NestThermostat:setHeatingThermostatSetpoint(value)
 end
 
 -- handle action for setting set point for cooling
-function QuickApp:setCoolingThermostatSetpoint(value)
-    self:debug("update temperature " .. value .. " with mode " .. self.properties.thermostatMode)
+function NestThermostat:setCoolingThermostatSetpoint(value, scale)
+    self:debug("update temperature " .. value .. ", scale " .. scale .. ", with mode " .. self.properties.thermostatMode)
 
-    local roundedValue = math.ceil(value * 10) / 10
+    --When the setpoint scale is in Fahrenheit, convert the value to Celsius
+    local degreesC = value
+    if (scale ~= nil) and (scale == 'F')
+    then
+        degreesC = (degreesC - 32) * 5 / 9
+        self:debug(string.format('Converting %.3f\176F to %.3f\176C', value, degreesC))
+    end
+
+    local roundedValue = math.ceil(degreesC * 10) / 10
 
     if (self.properties.thermostatMode == "Cool")
     then
