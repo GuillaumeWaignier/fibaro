@@ -212,7 +212,7 @@ function NestThermostat:setHeatingThermostatSetpoint(value)
       )
     elseif (self.properties.thermostatMode == "Auto")
     then
-      self:debug('Original coolingThermostatSetpoint' .. self.properties.coolingThermostatSetpoint)
+      self:debug('Original coolingThermostatSetpoint ' .. self.properties.coolingThermostatSetpoint)
       self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetRange",
           {['heatCelsius'] = roundedValue, ['coolCelsius'] = self.properties.coolingThermostatSetpoint},
           function()
@@ -238,7 +238,7 @@ function NestThermostat:setCoolingThermostatSetpoint(value)
       )
     elseif (self.properties.thermostatMode == "Auto")
     then
-      self:debug('Original heatingThermostatSetpoint' .. self.properties.heatingThermostatSetpoint)
+      self:debug('Original heatingThermostatSetpoint ' .. self.properties.heatingThermostatSetpoint)
       self:callNestApi("sdm.devices.commands.ThermostatTemperatureSetpoint.SetRange",
           {['heatCelsius'] = self.properties.heatingThermostatSetpoint, ['coolCelsius'] = roundedValue},
           function()
