@@ -4,17 +4,22 @@ QuickApp used to control Nest Thermostat on Fibaro HC3
 
 Device type: *device controller*
 
+*Supported box*: Fibaro Home Center 3 (HC3), HC3 lite, Yubii home, Z-Box hub
+
 ## Supported device type
 
 * Nest Thermostat 
 
 Support for multiples Thermostats in the same account
 
+*Features*: change the heating/cooling point, change/get mode, get state, get ambiant temperature and humidity
+
+*Supported mode*: Off, Manual Eco, Heat, Cool (if Thermostat support it), Auto
+
+*Supported unit*: Celsius and Fahrenheit
+
 *Account permissions requirement*: access and control your thermostat
 
-*Features*: change the heating point, change mode, get mode, get state, get ambiant temperature and humidity
-
-*Supported mode*: Off, Heat, Manual Eco, Cooling (if Thermostat support it)
 
 ![Screenshot](img/Nest_quickapp.png)
 
