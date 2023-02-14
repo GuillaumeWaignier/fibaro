@@ -66,11 +66,13 @@ These steps are:
 
 Once the quickApp is started, after few minutes, you will receive a mail, notification and error log containing a URL.
 This URL is used to configure authorization. Do:
-- Allow to get information about your home (at step 1)
-- Allow access and control to your Nest Thermostat ([Screenshot](#authentication---clientsecret-problem))
+- Open the link (be sure to use the full URL)
+- Login to you Google account
+- Allow to get information about your home (at step 1) ([Screenshot](#authentication---clientsecret-problem))
+- Allow access and control to your Nest Thermostat (at step 2) ([Screenshot](#authentication---clientsecret-problem))
 - At the end, you will be redirected to an URL of the form https://www.google.com/?code=4/xxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&scope=https://www.googleapis.com/auth/sdm.service
     - The part 4/xxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx is the **_"Authentication code"_**
-    - Set this code inside the corresponding quickApp variable named 'code'.
+    - Copy/paste manually this code inside the corresponding quickApp variable named 'code'.
 
 
 ## Troubleshooting
