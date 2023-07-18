@@ -1,2 +1,0 @@
-- [HOME](README.md)
-- [Troubleshooting](doc/Troubleshooting.md)
