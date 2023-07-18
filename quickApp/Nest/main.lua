@@ -20,6 +20,7 @@ function QuickApp:onInit()
         ["com.fibaro.hvacSystemAuto"] = NestThermostat,
         ["com.fibaro.temperatureSensor"] = NestThermostatTemperature,
         ["com.fibaro.humiditySensor"] = NestThermostatHumidity,
+        ["com.fibaro.motionSensor"] = NestMotionPerson
     })
 
     -- Build device map
@@ -39,7 +40,13 @@ function QuickApp:onInit()
             api.delete('/devices/' .. id)
         end
     end
+
+    --start
     self:mainLoop()
+    if self.gcpProjectId ~= nil
+    then
+        self:getPubSubEvent()
+    end
 end
 
 function QuickApp:initializeProperties()
@@ -66,6 +73,16 @@ function QuickApp:initializeProperties()
       self:warning("set refresh token to null")
       self:setVariable("refreshToken", "")
     end
+
+    self.gcpProjectId = self:getVariable("gcpProjectId")
+    if (self.gcpProjectId == "")
+    then
+      self:warning("gcpProjectId is not set. Disable pubsub (no camera or dorbell support)")
+      self.gcpProjectId = nil
+    else
+      self.subscription = self:getVariable("subscription")
+      assert(self.subscription ~= "", "subscription is not set and is mandatory when gcpProjectId is set")
+    end
     
     self.accessToken = nil
 
@@ -76,6 +93,7 @@ function QuickApp:initializeProperties()
     end
 
     QuickApp.http = net.HTTPClient({ timeout = 10000 })
+    QuickApp.pubsub = net.HTTPClient({ timeout = 60000 })
 end
 
 
@@ -100,7 +118,7 @@ function QuickApp:sendMailForRefreshToken()
         return
     end
         
-    local url = string.format("https://nestservices.google.com/partnerconnections/%s/auth?redirect_uri=https://www.google.com%%26access_type=offline%%26prompt=consent%%26client_id=%s%%26response_type=code%%26scope=https://www.googleapis.com/auth/sdm.service",self.projectId, self.clientId)
+    local url = string.format("https://nestservices.google.com/partnerconnections/%s/auth?redirect_uri=https://www.google.com%%26access_type=offline%%26prompt=consent%%26client_id=%s%%26response_type=code%%26scope=https://www.googleapis.com/auth/sdm.service%%20https://www.googleapis.com/auth/pubsub",self.projectId, self.clientId)
 
     -- mail
     local mail = string.format("Need to refresh Nest Authentication code for quickApp %d with %s", self.id, url)
@@ -273,7 +291,11 @@ function QuickApp:createChild(name, device, type)
     elseif type == "com.fibaro.humiditySensor"
     then
         child = self:createChildDevice({name = name,type = "com.fibaro.humiditySensor"}, NestThermostatHumidity)
+    elseif type == "com.fibaro.motionSensor"
+    then
+        child = self:createChildDevice({name = name,type = "com.fibaro.motionSensor"}, NestMotionPerson)
     end
+
 
     child:setVariable("uid", name)
     self.devicesMap[name] = child.id

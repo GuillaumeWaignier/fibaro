@@ -1,5 +1,6 @@
 -----------------------------------------------------------------------------
---                  NEST THERMOSTAT             -----------------------------
+--                  NEST THERMOSTAT                                        --
+--                  type: com.fibaro.hvacSystemAuto                        --
 -----------------------------------------------------------------------------
 class 'NestThermostat' (QuickAppChild)
 
@@ -289,33 +290,4 @@ function NestThermostat:callNestApi(command, params, callback)
             self:error("callNestApi() " .. message .." failed: " .. json.encode(error))
         end
     })
-end
-
-
--- Temperature sensor type have no actions to handle
-class 'NestThermostatTemperature' (QuickAppChild)
-
-function NestThermostatTemperature:__init(device)
-    QuickAppChild.__init(self, device) 
-    self:trace("NestThermostatTemperature init")
-end
-
-function NestThermostatTemperature:updateDevice(body)
-    -- self:debug("updateDevice " .. self.id .. " with body " .. json.encode(body))
-    local temp = body['traits']['sdm.devices.traits.Temperature']['ambientTemperatureCelsius']
-    self:updateProperty("value", temp)
-end
-
-class 'NestThermostatHumidity' (QuickAppChild)
-
--- __init is a constructor for this class. All new classes must have it.
-function NestThermostatHumidity:__init(device)
-    -- You should not insert code before QuickAppChild.__init. 
-    QuickAppChild.__init(self, device) 
-    self:trace("NestThermostatHumidity init")
-end
-
-function NestThermostatHumidity:updateDevice(body)
-    local temp = body['traits']['sdm.devices.traits.Humidity']['ambientHumidityPercent']
-    self:updateProperty("value", temp)
 end
