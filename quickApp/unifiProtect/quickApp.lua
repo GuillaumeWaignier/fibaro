@@ -12,7 +12,7 @@ function QuickApp:onInit()
     self:initializeProperties()
 
     self:initChildDevices({
-        ["com.fibaro.binarySensor"] = UnifiCamera,
+        ["com.fibaro.motionSensor"] = UnifiCamera,
     })
 
      -- Build device map
@@ -155,7 +155,7 @@ function QuickApp:checkCamera(camera)
     local device = self.devicesMap[mac]
     if device == nil
     then
-        device = self:createChildDevice({name = mac,type = "com.fibaro.binarySensor"}, UnifiCamera)
+        device = self:createChildDevice({name = mac,type = "com.fibaro.motionSensor"}, UnifiCamera)
         device:setVariable("mac", mac)
         self.devicesMap[mac] = device
         local message = string.format("Child device created: %s of type %s", device.id, device.type)
