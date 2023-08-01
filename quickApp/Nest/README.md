@@ -30,6 +30,12 @@ Support for multiples devices with camera, such as Nest Hub Max, Nest DoorBell.
 
 *Features*: detect of motion person
 
+## Nest DoorBell
+
+Support for Nest DoorBell.
+
+*Features*: doorbell chime
+
 ![Screenshot](img/Nest_motion.png)
 
 # Installation
