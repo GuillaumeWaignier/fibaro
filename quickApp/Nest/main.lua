@@ -92,6 +92,8 @@ function QuickApp:initializeProperties()
       self.step = "refreshToken"
     end
 
+    self.maxLogDebugPubSub = 10
+
     QuickApp.http = net.HTTPClient({ timeout = 10000 })
     QuickApp.pubsub = net.HTTPClient({ timeout = 60000 })
 end
@@ -121,7 +123,7 @@ function QuickApp:sendMailForRefreshToken()
     local url = string.format("https://nestservices.google.com/partnerconnections/%s/auth?redirect_uri=https://www.google.com%%26access_type=offline%%26prompt=consent%%26client_id=%s%%26response_type=code%%26scope=https://www.googleapis.com/auth/sdm.service%%20https://www.googleapis.com/auth/pubsub",self.projectId, self.clientId)
 
     -- mail
-    local mail = string.format("Need to refresh Nest Authentication code for quickApp %d with %s", self.id, url)
+    local mail = string.format("Need to refresh Nest Authentication code for quickApp %d. Please be sure to copy/paste the full URL in a web browser : %s", self.id, url:gsub("%%20","+"))
     fibaro.alert("email", {2}, mail)
 
     -- log

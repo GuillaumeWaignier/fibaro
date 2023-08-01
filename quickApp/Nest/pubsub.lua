@@ -7,6 +7,10 @@
 
 -- PubSub Event
 function QuickApp:getPubSubEvent()
+    if self.step == "nothing"
+    then
+        return
+    end
     if self.step ~= "device"
     then
         self:debug("getPubSubEvent()", "wait")
@@ -138,7 +142,15 @@ function QuickApp:acknowledge(acksIds)
         },
         success = function(response)
             if response.status == 200 then
-                self:debug("acknowledge OK for " .. #acksIds .. " events")
+                if self.maxLogDebugPubSub > 0
+                then
+                    self:debug("acknowledge OK for " .. #acksIds .. " events")
+                    self.maxLogDebugPubSub = self.maxLogDebugPubSub - 1
+                elseif self.maxLogDebugPubSub == 0
+                then
+                    self:debug("next acknowledge will not be logged")
+                    self.maxLogDebugPubSub = self.maxLogDebugPubSub - 1
+                end
             else
                 self:error("acknowledge() for " .. #acksIds .. " events, status is " .. response.status .. ": " .. response.data)
             end
