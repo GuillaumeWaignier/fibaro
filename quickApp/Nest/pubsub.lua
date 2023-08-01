@@ -92,7 +92,8 @@ function QuickApp:updatePubSubEvent(body)
       fibaroDevice:updateDevice(data)
     elseif event['sdm.devices.events.DoorbellChime.Chime'] ~= nil
     then
-      self:debug("updatePubSubEvent(doorbell)", json.encode(data))
+      local fibaroDevice = self:getOrCreateChildDevice(name .. "Chime", data, "com.fibaro.motionSensor")
+      fibaroDevice:updateDevice(data)
     end
   end
 
