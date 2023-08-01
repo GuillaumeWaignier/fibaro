@@ -30,11 +30,15 @@ Support for multiples devices with camera, such as Nest Hub Max, Nest DoorBell.
 
 *Features*: detect of motion person
 
+*Account permissions requirement*: know when an event occurs (included motion)
+
 ## Nest DoorBell
 
 Support for Nest DoorBell.
 
 *Features*: doorbell chime
+
+*Account permissions requirement*: know when a personn press the doorbell
 
 ![Screenshot](img/Nest_motion.png)
 
@@ -88,6 +92,7 @@ This URL is used to configure authorization. Do:
 - Login to you Google account
 - Allow to get information about your home (at step 1) ([Screenshot](#authentication---clientsecret-problem))
 - Allow access and control to your Nest Thermostat (at step 2) ([Screenshot](#authentication---clientsecret-problem))
+- If necessary, allow access to Nest Camera events (motion detection) and Nest Doorbell events (button press).
 - At the end, you will be redirected to an URL of the form https://www.google.com/?code=4/xxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&scope=https://www.googleapis.com/auth/sdm.service
     - The part 4/xxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx is the **_"Authentication code"_**
     - Copy/paste manually this code inside the corresponding quickApp variable named 'code'.
