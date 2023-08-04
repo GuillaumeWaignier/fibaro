@@ -13,9 +13,7 @@ function QuickApp:getPubSubEvent()
     end
     if self.step ~= "device"
     then
-        self:debug("getPubSubEvent()", "wait")
         fibaro.setTimeout(self.frequency * 1000, function()
-            self:debug("getPubSubEvent()", "end wait")
             self:getPubSubEvent()
         end)
         return
