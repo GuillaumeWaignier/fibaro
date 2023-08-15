@@ -30,7 +30,7 @@ function NestMotionPerson:updateDevice(body)
     local offset = os.time() - os.time(os.date("!*t"))
     
     local date_string = body['timestamp']
-    local pattern = "(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)%.%d+Z"
+    local pattern = "(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)%.?%d-Z"
     local year, month, day, hour, min, sec = date_string:match(pattern)
     local eventTime = os.time({year = year, month = month, day = day, hour = hour, min = min, sec = sec}) + offset
 
