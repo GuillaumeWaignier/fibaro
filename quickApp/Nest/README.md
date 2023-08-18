@@ -58,16 +58,17 @@ All steps are explained in the quickstart [https://developers.google.com/nest/de
 
 These steps are:
 1. Create a Google Device Nest Account in [https://developers.google.com/nest/device-access](https://developers.google.com/nest/device-access)
-2. Create a "Google Cloud Project" in [https://developers.google.com/nest/device-access/get-started#set_up_google_cloud_platform](https://developers.google.com/nest/device-access/get-started#set_up_google_cloud_platform)
+    - You must register for *sandbox access* for personal use
+3. Create a "Google Cloud Project" in [https://developers.google.com/nest/device-access/get-started#set_up_google_cloud_platform](https://developers.google.com/nest/device-access/get-started#set_up_google_cloud_platform)
     - Select Web Server when it asks "Where are you calling from?"
     - Enter https://www.google.com as the value for Authorized redirect URIs.
     - Keep the **_"OAuth 2.0 Client ID"_** and **_"Client Secret"_** values (they are also written in the file credentials.json)
-3. Create a new project in [https://console.nest.google.com/device-access/project-list](https://console.nest.google.com/device-access/project-list)
+4. Create a new project in [https://console.nest.google.com/device-access/project-list](https://console.nest.google.com/device-access/project-list)
     - Set a project's name
     - Set the **_"OAuth 2.0 Client ID"_** retrieved during the step 2
     - Google cloud Pub/Sub is required only for camera and door bell (not for thermosthat). See [specific installation](doc/pubsub.md)
     - At the end, you obtain a **_"Project ID"_** of the form "32c4c2bc-fe0d-461b-b51c-f3885afff2f0"
-4. To finish, you can import the quickApp in Fibaro Home Center 3 and set the Variables (see the table below)
+5. To finish, you can import the quickApp in Fibaro Home Center 3 and set the Variables (see the table below)
 
 ## Variables
 
