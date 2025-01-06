@@ -65,10 +65,10 @@ If you see an error like the one below in your logs:
 
 
 ```bash
-[06.01.2025] [10:37:25] [ERROR] [QUICKAPP245]: getPubSubEvent() status is 401: { "error
+[06.01.2025] [10:37:25] [ERROR] [QUICKAPP245]: getPubSubEvent() status is 403: { "error
 ```
 
-A 401 error indicates an authentication issue.
+A 403 error indicates an authentication issue, specifically that access to Pub/Sub is forbidden.
 
 This issue typically occurs when the Authentication URL was not fully copied during [this step](../README.md#get-the-authentication-code). It's important to ensure the entire URL is copied correctly.
 
