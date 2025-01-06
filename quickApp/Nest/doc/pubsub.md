@@ -31,3 +31,58 @@ It is written in several location on the page :
 * in yellow in the console below the screen.
 * in the widget 'Project information' under 'project id'
 * in blue above the Terminal
+
+
+# Troubleshooting
+
+If you encounter issues with the quickApp, you can try restarting it by either restarting the Fibaro Home Center or modifying and saving the quickApp's parameters.
+
+## Configuration Issues: gcpProjectId or Subscription Problem
+
+If you see an error like the one below in your logs:
+
+
+```bash
+[06.01.2025] [10:37:25] [ERROR] [QUICKAPP245]: getPubSubEvent() status is 404: { "error
+```
+
+This 404 error indicates a misconfiguration in the Fibaro variables.
+
+First, verify that the **_gcpProjectId_** is correctly configured.
+You can confirm this on the [Google Cloud Console](https://console.cloud.google.com/home/dashboard?cloudshell=true).
+The gcpProjectId should appear in green, as shown in the screenshot below.
+
+
+![acls](../img/gcpprojectid.png)
+
+
+Then, verify the **_subscription_** is correct.
+
+
+## Authentication Issues - Wrong Authentication Code
+
+If you see an error like the one below in your logs:
+
+
+```bash
+[06.01.2025] [10:37:25] [ERROR] [QUICKAPP245]: getPubSubEvent() status is 401: { "error
+```
+
+A 401 error indicates an authentication issue.
+
+This issue typically occurs when the Authentication URL was not fully copied during [this step](../README.md#get-the-authentication-code). It's important to ensure the entire URL is copied correctly.
+
+When activating Pub/Sub, the URL should contains 2 scopes (rights).
+The URL will look something like this:
+
+
+https://www.google.com/?code=4/xxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&scope=https://www.googleapis.com/auth/sdm.service%20https://www.googleapis.com/auth/pubsub
+
+* The scope https://www.googleapis.com/auth/sdm.service is used to list Nest devices and to connect to the Nest thermosthat
+* The scope https://www.googleapis.com/auth/pubsub is used to connect to the pubsub (Nest Camera and doorbell)
+
+Sometimes, when clicking on the URL sent in the email, only the first scope is passed to your web browser. This can cause the authentication to fail.
+
+To restart the authentication process, replace the value of the **_refreshToken_** in the Fibaro variable with a single dash (-).
+This action will trigger the system to resend the authentication email.
+When cliking on link in the email, check the end of the URL to ensure that both scopes are included. If the second scope is missing, manually add it to the URL before proceeding.
