@@ -27,7 +27,7 @@ gcloud pubsub subscriptions create fibaro --topic=projects/sdm-prod/topics/enter
 
 On this [Page](https://console.cloud.google.com/home/dashboard?cloudshell=true), you can get the **_gcpProjectId_**.
 It is on the form of *domotique-1201240210101*.
-It is written in several location on the page :
+It is written in several location on the page ([Screenshot](#configuration-issues-gcpprojectid-or-subscription-problem)) :
 * in yellow in the console below the screen.
 * in the widget 'Project information' under 'project id'
 * in blue above the Terminal
@@ -53,10 +53,12 @@ You can confirm this on the [Google Cloud Console](https://console.cloud.google.
 The gcpProjectId should appear in green, as shown in the screenshot below.
 
 
-![acls](../img/gcpprojectid.png)
+![gcpprojectid](../img/gcpprojectid.png)
 
 
-Then, verify the **_subscription_** is correct.
+Then, verify the **_subscription_** is correct with this [page](https://console.cloud.google.com/cloudpubsub/subscription).
+
+![gcpprojectid](../img/subscription.png)
 
 
 ## Authentication Issues - Wrong Authentication Code
@@ -86,3 +88,25 @@ Sometimes, when clicking on the URL sent in the email, only the first scope is p
 To restart the authentication process, replace the value of the **_refreshToken_** in the Fibaro variable with a single dash (-).
 This action will trigger the system to resend the authentication email.
 When cliking on link in the email, check the end of the URL to ensure that both scopes are included. If the second scope is missing, manually add it to the URL before proceeding.
+
+
+## Authentication - no problem
+
+If you get this log, the pub/sub is correctly configured.
+These logs are only present for a short time after the QuickApp starts, and then they disappear to avoid cluttering the logs.
+
+```bash
+[09.01.2025] [13:58:18] [DEBUG] [QUICKAPP245]: acknowledge OK for 1 events
+```
+
+# Monitoring Dashboard
+
+
+You can check the performance of Pub/Sub call with [https://console.cloud.google.com/apis](https://console.cloud.google.com/apis).
+
+The API name is *Cloud Pub/Sub API*
+
+If you have some traffic, your connection is ok.
+If you have some errors, the problem come from the Google API.
+
+![API](../img/SmartDeviceManagementAPIPubSub.png)
