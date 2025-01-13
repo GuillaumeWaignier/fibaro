@@ -17,6 +17,8 @@ function QuickApp:onInit()
         ["com.fibaro.humiditySensor"] = WeatherHumidity,
         ["com.fibaro.windSensor"] = WeatherWind,
         ["com.fibaro.multilevelSensor"] = WeatherPressure,
+        ["com.fibaro.temperatureSensor"] = WeatherMaxTemperature,
+        ["com.fibaro.temperatureSensor"] = WeatherMinTemperature,
     })
 
     self:retrieveChild()
@@ -121,13 +123,29 @@ function QuickApp:completeChild()
         child:updateProperty("unit", "hPa") 
     end
 
-     local name = "uvi"
+    local name = "uvi"
     if self.devicesMap[name] == nil
     then
         child = self:createChildDevice({name = name,type = "com.fibaro.multilevelSensor"}, WeatherPressure)
         self.devicesMap[name] = child
         child:setVariable("uid", name)
         child:updateProperty("unit", "uv")
+    end
+
+    local name = "mintemp"
+    if self.devicesMap[name] == nil
+    then
+        child = self:createChildDevice({name = name,type = "com.fibaro.temperatureSensor"}, WeatherMinTemperature)
+        self.devicesMap[name] = child
+        child:setVariable("uid", name)
+    end
+
+    local name = "maxtemp"
+    if self.devicesMap[name] == nil
+    then
+        child = self:createChildDevice({name = name,type = "com.fibaro.temperatureSensor"}, WeatherMaxTemperature)
+        self.devicesMap[name] = child
+        child:setVariable("uid", name)
     end
 end
 
@@ -142,7 +160,7 @@ end
 
 
 function QuickApp:fetchWeatherData()
-    local address = string.format("https://api.weatherapi.com/v1/current.json?q=%s,%s&key=%s", self.lat, self.long, self.key)
+    local address = string.format("https://api.weatherapi.com/v1/forecast.json?q=%s,%s&key=%s&days=1&hour=-1", self.lat, self.long, self.key)
 
     self.http:request(address, {
         options={
@@ -152,7 +170,7 @@ function QuickApp:fetchWeatherData()
             },
         },
         success = function(response)
-            --print(response.data)
+            --print(response.data) 
             local data = json.decode(response.data)
             if data
             then
@@ -202,19 +220,23 @@ function QuickApp:onWatherDataReceived(data)
 
     if data.current.condition and data.current.condition.code
     then    
-        self:setCondition(data.current.condition)
+        self:setCondition(data.current.condition, data.current.is_day)
+    end
+
+    if data.forecast.forecastday[1] ~= nil  
+    then
+        self.devicesMap["maxtemp"]:updateProperty("value", data.forecast.forecastday[1].day.maxtemp_c)
+        self.devicesMap["mintemp"]:updateProperty("value", data.forecast.forecastday[1].day.mintemp_c)
+
     end
 end
 
 
-function QuickApp:setCondition(condition)
-    local currentTime = os.date("%H:%M")
-    local sunset = fibaro.getValue(1, "sunsetHour")
-    local sunrise = fibaro.getValue(1, "sunriseHour")
-   
+function QuickApp:setCondition(condition, is_day)
     -- check if it is day or night
     local suffix = "n"
-    if currentTime >= sunrise and currentTime < sunset then
+    if is_day == 1
+    then
         suffix = "d"
     end
        
@@ -306,4 +328,19 @@ function WeatherPressure:__init(device)
     self:trace("WeatherPressure init")
 end
 
+-- Max Temperature sensor
+class 'WeatherMaxTemperature' (QuickAppChild)
+
+function WeatherMaxTemperature:__init(device)
+    QuickAppChild.__init(self, device) 
+    self:trace("WeatherMaxTemperature init")
+end
+
+-- Min Temperature sensor
+class 'WeatherMinTemperature' (QuickAppChild)
+
+function WeatherMinTemperature:__init(device)
+    QuickAppChild.__init(self, device) 
+    self:trace("WeatherMinTemperature init")
+end
 
