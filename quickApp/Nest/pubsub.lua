@@ -4,9 +4,24 @@
 -----------------------------------------------------------------------------
 
 
+function QuickApp:pubSubHealthcheck()
+    
+    if self.lastPubSubCalledDate == nil or (os.time() - self.lastPubSubCalledDate) > 600
+    then
+        self:debug("pubSubHealthcheck()", "Restart getPubSubEvent")
+        self:getPubSubEvent()
+    end
+
+    fibaro.setTimeout(60000, function()
+        self:pubSubHealthcheck()
+    end)
+end
+
 
 -- PubSub Event
 function QuickApp:getPubSubEvent()
+    self.lastPubSubCalledDate = os.time()
+
     if self.step == "nothing"
     then
         return

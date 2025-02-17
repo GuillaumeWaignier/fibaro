@@ -21,7 +21,7 @@ function QuickApp:onInit()
         ["com.fibaro.temperatureSensor"] = NestThermostatTemperature,
         ["com.fibaro.humiditySensor"] = NestThermostatHumidity,
         ["com.fibaro.motionSensor"] = NestMotionPerson
-    })
+    }) 
 
     -- Build device map
     self.devicesMap = {}
@@ -45,7 +45,7 @@ function QuickApp:onInit()
     self:mainLoop()
     if self.gcpProjectId ~= nil
     then
-        self:getPubSubEvent()
+        self:pubSubHealthcheck()
     end
 end
 
@@ -243,11 +243,11 @@ function QuickApp:listNestDevice()
     })
 end
 
-function QuickApp:updateNestDevices(body)
+function QuickApp:updateNestDevices(body) 
   devices = body['devices']
   --self:debug("updateNestDevices()", json.encode(devices))
 
-  for i, device in ipairs(devices)
+  for i, device in ipairs(devices) 
   do
     local name = device['name']
     if device['traits']['sdm.devices.traits.ThermostatTemperatureSetpoint'] ~= nil
