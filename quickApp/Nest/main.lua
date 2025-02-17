@@ -197,16 +197,16 @@ function QuickApp:getAccessToken()
                 self.accessToken = "Bearer " .. body['access_token']
                 self.step = "device"
                 --self:debug("getAccessToken() succeed " .. self.accessToken)
-            else
+            elseif response.status >= 500 then
                 self:error("getAccessToken() status is " .. response.status .. ": " .. response.data)
+            else
+                self:warning("getAccessToken() status is " .. response.status .. ": " .. response.data)
                 self:setVariable("refreshToken", "")
                 self.step = "refreshToken"
             end
         end,
         error = function(error)
             self:error("getAccessToken() failed: " .. json.encode(error))
-            self:setVariable("refreshToken", "")
-            self.step = "refreshToken"
         end
     })
 end
