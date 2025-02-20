@@ -9,7 +9,7 @@
 -- Apache License 2.0
 
 function QuickApp:onInit()
-    self:debug("QuickApp:onInit")
+    self:debug("QuickApp:onInit. Version 1.3.2")
 
     self:initializeProperties()
 
