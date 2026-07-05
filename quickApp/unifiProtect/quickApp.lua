@@ -152,6 +152,11 @@ function QuickApp:checkCamera(camera)
     --self:trace("checkCamera()", json.encode(camera))
     local mac = string.lower(camera['mac'])
 
+    if camera['isAdopted'] == false
+    then
+        return
+    end
+
     local device = self.devicesMap[mac]
     if device == nil
     then
